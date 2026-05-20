@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/app_border.dart';
-import '../../../../core/helpers/app_validator.dart';
 import '../../../../core/styling/colors.dart';
 import '../../../../core/styling/padding.dart';
 import '../../../../core/styling/text_styles.dart';
@@ -20,13 +19,13 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
   }
@@ -36,12 +35,14 @@ class _LoginScreenState extends State<LoginScreen> {
       developer.log('LoginScreen: Form validation failed', name: 'ui.auth');
       return;
     }
+    final digits = _phoneCtrl.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    final fakeEmail = '$digits@sabeh.staff';
     developer.log(
       'LoginScreen: Form validated, submitting sign-in...',
       name: 'ui.auth',
     );
     context.read<AuthCubit>().signIn(
-      email: _emailCtrl.text.trim(),
+      email: fakeEmail,
       password: _passwordCtrl.text,
     );
   }
@@ -116,13 +117,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: 40.h),
                     TextFormField(
-                      controller: _emailCtrl,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
-                      validator: AppValidator.validateEmail,
+                      validator: (v) => (v == null || v.trim().replaceAll(RegExp(r'[^0-9]'), '').length < 7)
+                          ? 'Enter a valid phone number'
+                          : null,
                       decoration: _inputDecoration(
-                        label: 'Email',
-                        icon: Icons.email_outlined,
+                        label: 'Phone Number',
+                        icon: Icons.phone_outlined,
                       ),
                     ),
                     SizedBox(height: 16.h),
@@ -130,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordCtrl,
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
-                      validator: AppValidator.validatePassword,
+                      validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: _inputDecoration(
                         label: 'Password',

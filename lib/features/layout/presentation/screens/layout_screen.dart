@@ -7,6 +7,7 @@ import '../../../../core/navigation/cubits/navigation_cubit.dart';
 import '../../../../core/styling/colors.dart';
 import '../../../auth/data/model/staff_user.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../analytics/presentation/screens/analytics_screen.dart';
 import '../../../branches/presentation/screens/branches_mgmt_screen.dart';
 import '../../../delivery_zones/presentation/screens/delivery_zones_mgmt_screen.dart';
@@ -42,7 +43,16 @@ class _LayoutScreenState extends State<LayoutScreen> {
     final tabs = _tabsForRole(role, branchId);
     final isWeb = Responsive.isWeb(context);
 
-    return BlocBuilder<NavigationCubit, int>(
+    return BlocListener<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.unauthenticated) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            LoginScreen.routeName,
+            (route) => false,
+          );
+        }
+      },
+      child: BlocBuilder<NavigationCubit, int>(
       builder: (context, currentIndex) {
         final safeIndex = currentIndex.clamp(0, tabs.length - 1);
 
@@ -82,6 +92,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
           ),
         );
       },
+    ),
     );
   }
 
