@@ -64,10 +64,9 @@ class AuthCubit extends Cubit<AuthState> {
 
   String _parseError(Object e) {
     final msg = e.toString();
-    if (msg.contains('Invalid login credentials'))
-      return 'Invalid phone number or password';
-    if (msg.contains('Email not confirmed'))
-      return 'Please verify your email first';
+    if (msg.contains('Invalid login credentials')) return 'Invalid phone number or password';
+    if (msg.contains('No staff profile found')) return 'No staff profile found. Contact your administrator.';
+    if (msg.contains('Email not confirmed')) return 'Please verify your email first';
     if (msg.contains('network')) return 'Network error. Check your connection';
     return 'Sign-in failed. Please try again';
   }

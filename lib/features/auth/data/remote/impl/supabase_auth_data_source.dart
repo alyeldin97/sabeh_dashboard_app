@@ -24,18 +24,24 @@ class SupabaseAuthDataSource implements AuthDataSource {
       if (uid == null) throw Exception('Sign-in failed: no user returned');
 
       AppLogger.i(_tag, 'auth success uid=$uid, fetching staff profile');
-      final profileData = await _client
-          .from('staff_profiles')
-          .select()
-          .eq('id', uid)
-          .single();
-
-      AppLogger.i(_tag, 'staff profile → role=${profileData['role']}');
-      return StaffUser.fromJson({
-        'id':    uid,
-        'email': response.user!.email ?? email,
-        ...profileData,
-      });
+      try {
+        final profileData = await _client
+            .from('staff_profiles')
+            .select()
+            .eq('id', uid)
+            .single();
+        AppLogger.i(_tag, 'staff profile → role=${profileData['role']}');
+        return StaffUser.fromJson({
+          'id':    uid,
+          'email': response.user!.email ?? email,
+          ...profileData,
+        });
+      } catch (profileErr) {
+        // Auth succeeded but no staff profile — sign out to avoid a dangling session.
+        await _client.auth.signOut();
+        AppLogger.e(_tag, 'no staff profile for uid=$uid, signed out', profileErr);
+        throw Exception('No staff profile found. Contact your administrator.');
+      }
     } catch (e, st) {
       AppLogger.e(_tag, 'signInWithEmail failed', e, st);
       rethrow;
