@@ -71,6 +71,42 @@ class OrdersCubit extends Cubit<OrdersState> {
     }
   }
 
+  Future<void> createOrder({
+    required Map<String, dynamic> orderData,
+    required List<Map<String, dynamic>> items,
+    String? branchId,
+  }) async {
+    AppLogger.i(_tag, 'createOrder items=${items.length}');
+    emit(state.copyWith(
+      createStatus: OrdersCreateStatus.loading,
+      createError: null,
+      createdOrderId: null,
+    ));
+    try {
+      final orderId = await _repo.createOrder(orderData: orderData, items: items);
+      AppLogger.i(_tag, 'createOrder success orderId=$orderId');
+      emit(state.copyWith(
+        createStatus:   OrdersCreateStatus.success,
+        createdOrderId: orderId,
+      ));
+      await load(branchId: branchId);
+    } catch (e, st) {
+      AppLogger.e(_tag, 'createOrder failed', e, st);
+      emit(state.copyWith(
+        createStatus: OrdersCreateStatus.failure,
+        createError:  e.toString(),
+      ));
+    }
+  }
+
+  void resetCreateStatus() {
+    emit(state.copyWith(
+      createStatus:   OrdersCreateStatus.idle,
+      createdOrderId: null,
+      createError:    null,
+    ));
+  }
+
   @override
   Future<void> close() async {
     AppLogger.d(_tag, 'close — stopping realtime watch');

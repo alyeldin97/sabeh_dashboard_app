@@ -7,6 +7,7 @@ import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
 import '../../data/model/customer.dart';
 import '../cubits/customers_cubit.dart';
+import 'customer_detail_screen.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -30,6 +31,16 @@ class _CustomersScreenState extends State<CustomersScreen> {
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  void _openDetail(BuildContext context, Customer customer) {
+    context.read<CustomersCubit>().loadCustomerDetail(customer.id);
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => BlocProvider.value(
+        value: context.read<CustomersCubit>(),
+        child: CustomerDetailScreen(customer: customer),
+      ),
+    ));
   }
 
   @override
@@ -104,13 +115,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 }
 
                 if (isWeb) {
-                  return _CustomerTable(customers: state.customers);
+                  return _CustomerTable(
+                    customers: state.customers,
+                    onTap: (c) => _openDetail(context, c),
+                  );
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   itemCount: state.customers.length,
                   separatorBuilder: (_, __) => SizedBox(height: 8.h),
-                  itemBuilder: (_, i) => _CustomerCard(customer: state.customers[i]),
+                  itemBuilder: (_, i) => _CustomerCard(
+                    customer: state.customers[i],
+                    onTap: () => _openDetail(context, state.customers[i]),
+                  ),
                 );
               },
             ),
@@ -200,87 +217,119 @@ class _Header extends StatelessWidget {
 // ── Mobile card ──────────────────────────────────────────────────────────────
 
 class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({required this.customer});
+  const _CustomerCard({required this.customer, required this.onTap});
   final Customer customer;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppBorderRadius.r16,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryDeep.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _Avatar(initials: customer.initials),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  customer.displayName,
-                  style: GoogleFonts.nunito(
-                    fontSize: Responsive.sp(context, 14),
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (customer.email != null) ...[
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: AppBorderRadius.r16,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryDeep.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            _Avatar(initials: customer.initials),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    customer.email!,
+                    customer.displayName,
                     style: GoogleFonts.nunito(
-                      fontSize: Responsive.sp(context, 12),
-                      color: AppColors.textLight,
+                      fontSize: Responsive.sp(context, 14),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ],
-                if (customer.phone != null) ...[
-                  Text(
-                    customer.phone!,
-                    style: GoogleFonts.nunito(
-                      fontSize: Responsive.sp(context, 12),
-                      color: AppColors.textLight,
+                  if (customer.email != null) ...[
+                    Text(
+                      customer.email!,
+                      style: GoogleFonts.nunito(
+                        fontSize: Responsive.sp(context, 12),
+                        color: AppColors.textLight,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                  ],
+                  if (customer.phone != null) ...[
+                    Text(
+                      customer.phone!,
+                      style: GoogleFonts.nunito(
+                        fontSize: Responsive.sp(context, 12),
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                  ],
+                  if (customer.loyaltyPoints > 0) ...[
+                    SizedBox(height: 4.h),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentGold.withValues(alpha: 0.15),
+                        borderRadius: AppBorderRadius.r8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.stars_rounded,
+                              size: 12.r, color: AppColors.accentGold),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${customer.loyaltyPoints} pts',
+                            style: GoogleFonts.nunito(
+                              fontSize: Responsive.sp(context, 11),
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.accentGold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${customer.orderCount} orders',
+                  style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 12),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryMid,
+                  ),
+                ),
+                Text(
+                  'EGP ${customer.totalSpent.toStringAsFixed(0)}',
+                  style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 12),
+                    color: AppColors.textLight,
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded,
+                    size: 18.r, color: AppColors.textLight),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${customer.orderCount} orders',
-                style: GoogleFonts.nunito(
-                  fontSize: Responsive.sp(context, 12),
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryMid,
-                ),
-              ),
-              Text(
-                'EGP ${customer.totalSpent.toStringAsFixed(0)}',
-                style: GoogleFonts.nunito(
-                  fontSize: Responsive.sp(context, 12),
-                  color: AppColors.textLight,
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -289,8 +338,9 @@ class _CustomerCard extends StatelessWidget {
 // ── Web table ────────────────────────────────────────────────────────────────
 
 class _CustomerTable extends StatelessWidget {
-  const _CustomerTable({required this.customers});
+  const _CustomerTable({required this.customers, required this.onTap});
   final List<Customer> customers;
+  final void Function(Customer) onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +350,7 @@ class _CustomerTable extends StatelessWidget {
         children: [
           _TableHeader(),
           const Divider(height: 1),
-          ...customers.map((c) => _TableRow(customer: c)),
+          ...customers.map((c) => _TableRow(customer: c, onTap: () => onTap(c))),
         ],
       ),
     );
@@ -354,6 +404,16 @@ class _TableHeader extends StatelessWidget {
           ),
           SizedBox(
             width: 100,
+            child: Text('Loyalty',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: Responsive.sp(context, 12),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textLight,
+                )),
+          ),
+          SizedBox(
+            width: 100,
             child: Text('Total Spent',
                 textAlign: TextAlign.right,
                 style: GoogleFonts.nunito(
@@ -369,84 +429,117 @@ class _TableHeader extends StatelessWidget {
 }
 
 class _TableRow extends StatelessWidget {
-  const _TableRow({required this.customer});
+  const _TableRow({required this.customer, required this.onTap});
   final Customer customer;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                _Avatar(initials: customer.initials, size: 32),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    customer.displayName,
-                    style: GoogleFonts.nunito(
-                      fontSize: Responsive.sp(context, 13),
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.border)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  _Avatar(initials: customer.initials, size: 32),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      customer.displayName,
+                      style: GoogleFonts.nunito(
+                        fontSize: Responsive.sp(context, 13),
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Text(
+                customer.email ?? '—',
+                style: GoogleFonts.nunito(
+                  fontSize: Responsive.sp(context, 13),
+                  color: AppColors.textMid,
                 ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              customer.email ?? '—',
-              style: GoogleFonts.nunito(
-                fontSize: Responsive.sp(context, 13),
-                color: AppColors.textMid,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              customer.phone ?? '—',
-              style: GoogleFonts.nunito(
-                fontSize: Responsive.sp(context, 13),
-                color: AppColors.textMid,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          ),
-          SizedBox(
-            width: 80,
-            child: Text(
-              '${customer.orderCount}',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: Responsive.sp(context, 13),
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryMid,
+            Expanded(
+              flex: 2,
+              child: Text(
+                customer.phone ?? '—',
+                style: GoogleFonts.nunito(
+                  fontSize: Responsive.sp(context, 13),
+                  color: AppColors.textMid,
+                ),
               ),
             ),
-          ),
-          SizedBox(
-            width: 100,
-            child: Text(
-              'EGP ${customer.totalSpent.toStringAsFixed(0)}',
-              textAlign: TextAlign.right,
-              style: GoogleFonts.nunito(
-                fontSize: Responsive.sp(context, 13),
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
+            SizedBox(
+              width: 80,
+              child: Text(
+                '${customer.orderCount}',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: Responsive.sp(context, 13),
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryMid,
+                ),
               ),
             ),
-          ),
-        ],
+            SizedBox(
+              width: 100,
+              child: customer.loyaltyPoints > 0
+                  ? Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGold.withValues(alpha: 0.15),
+                          borderRadius: AppBorderRadius.r8,
+                        ),
+                        child: Text(
+                          '${customer.loyaltyPoints} pts',
+                          style: GoogleFonts.nunito(
+                            fontSize: Responsive.sp(context, 11),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.accentGold,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Text(
+                      '—',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: Responsive.sp(context, 13),
+                        color: AppColors.textLight,
+                      ),
+                    ),
+            ),
+            SizedBox(
+              width: 100,
+              child: Text(
+                'EGP ${customer.totalSpent.toStringAsFixed(0)}',
+                textAlign: TextAlign.right,
+                style: GoogleFonts.nunito(
+                  fontSize: Responsive.sp(context, 13),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

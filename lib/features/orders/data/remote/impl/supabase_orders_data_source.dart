@@ -51,6 +51,52 @@ class SupabaseOrdersDataSource implements OrdersDataSource {
   }
 
   @override
+  Future<List<OrderModel>> getOrdersByDate({
+    required DateTime date,
+    String? branchId,
+  }) async {
+    AppLogger.net(_tag, 'getOrdersByDate', 'date=$date branchId=$branchId');
+    try {
+      final start = DateTime(date.year, date.month, date.day).toUtc();
+      final end = start.add(const Duration(days: 1));
+      var query = _client
+          .from('orders')
+          .select('*, order_items(*)')
+          .gte('created_at', start.toIso8601String())
+          .lt('created_at', end.toIso8601String());
+      if (branchId != null) query = query.eq('branch_id', branchId) as dynamic;
+      final rows = await (query as dynamic).order('created_at', ascending: false);
+      final result = (rows as List)
+          .map((r) => OrderModel.fromJson(r as Map<String, dynamic>))
+          .toList();
+      AppLogger.i(_tag, 'getOrdersByDate → ${result.length} orders');
+      return result;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'getOrdersByDate failed', e, st);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateOrderDriver({
+    required String orderId,
+    String? driverId,
+    String? driverName,
+  }) async {
+    AppLogger.net(_tag, 'updateOrderDriver', 'orderId=$orderId driver=$driverName');
+    try {
+      await _client.from('orders').update({
+        'driver_id':   driverId,
+        'driver_name': driverName,
+      }).eq('id', orderId);
+      AppLogger.i(_tag, 'updateOrderDriver success');
+    } catch (e, st) {
+      AppLogger.e(_tag, 'updateOrderDriver failed', e, st);
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> updateOrderStatus({
     required String orderId,
     required OrderStatus status,
@@ -64,6 +110,35 @@ class SupabaseOrdersDataSource implements OrdersDataSource {
       AppLogger.i(_tag, 'updateOrderStatus success');
     } catch (e, st) {
       AppLogger.e(_tag, 'updateOrderStatus failed', e, st);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> createOrder({
+    required Map<String, dynamic> orderData,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    AppLogger.net(_tag, 'createOrder', 'items=${items.length}');
+    try {
+      final orderRow = await _client
+          .from('orders')
+          .insert(orderData)
+          .select('id')
+          .single();
+      final orderId = orderRow['id'] as String;
+      AppLogger.d(_tag, 'createOrder → orderId=$orderId, inserting ${items.length} items');
+
+      final itemsWithOrderId = items.map((item) => {
+        ...item,
+        'order_id': orderId,
+      }).toList();
+
+      await _client.from('order_items').insert(itemsWithOrderId);
+      AppLogger.i(_tag, 'createOrder success orderId=$orderId');
+      return orderId;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'createOrder failed', e, st);
       rethrow;
     }
   }

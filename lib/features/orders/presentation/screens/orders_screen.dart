@@ -6,8 +6,13 @@ import 'package:intl/intl.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import '../../../branches/presentation/cubits/branches_cubit.dart';
+import '../../../customers/presentation/cubits/customers_cubit.dart';
+import '../../../delivery_zones/presentation/cubits/delivery_zones_cubit.dart';
+import '../../../products/presentation/cubits/products_cubit.dart';
 import '../../data/model/order_model.dart';
 import '../cubits/orders_cubit.dart';
+import 'create_order_screen.dart';
 import 'order_details_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -78,6 +83,30 @@ class _OrdersScreenState extends State<OrdersScreen>
           labelStyle: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), fontWeight: FontWeight.w700),
           unselectedLabelStyle: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13)),
           tabs: _labels.map((l) => Tab(text: l)).toList(),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'orders_fab',
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: context.read<OrdersCubit>()),
+              BlocProvider.value(value: context.read<CustomersCubit>()),
+              BlocProvider.value(value: context.read<ProductsCubit>()),
+              BlocProvider.value(value: context.read<DeliveryZonesCubit>()),
+              BlocProvider.value(value: context.read<BranchesCubit>()),
+            ],
+            child: const CreateOrderScreen(),
+          ),
+        )),
+        backgroundColor: AppColors.primaryDeep,
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: Text(
+          'New Order',
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
       ),
       body: BlocBuilder<OrdersCubit, OrdersState>(

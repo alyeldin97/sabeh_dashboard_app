@@ -10,7 +10,9 @@ import 'features/analytics/presentation/cubits/analytics_cubit.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/branches/presentation/cubits/branches_cubit.dart';
 import 'features/customers/presentation/cubits/customers_cubit.dart';
+import 'features/delivery_zones/presentation/cubits/delivery_zones_cubit.dart';
 import 'features/orders/presentation/cubits/orders_cubit.dart';
+import 'features/products/presentation/cubits/products_cubit.dart';
 import 'routes.dart';
 
 Future<void> main() async {
@@ -40,6 +42,10 @@ class SabehDashboardApp extends StatelessWidget {
             BlocProvider<OrdersCubit>(create: (_) => di.ordersCubit),
             BlocProvider<AnalyticsCubit>(create: (_) => di.analyticsCubit),
             BlocProvider<BranchesCubit>(create: (_) => di.branchesCubit),
+            BlocProvider<DeliveryZonesCubit>(
+              create: (_) => di.deliveryZonesCubit,
+            ),
+            BlocProvider<ProductsCubit>(create: (_) => di.productsCubit),
             BlocProvider<NavigationCubit>(create: (_) => di.navigationCubit),
           ],
           child: MaterialApp(

@@ -1,0 +1,14 @@
+import '../model/expense_model.dart';
+
+abstract class ExpensesDataSource {
+  Future<List<ExpenseModel>> getExpensesByDate({
+    required DateTime date,
+    String? branchId,
+  });
+  Future<ExpenseModel> createExpense({required Map<String, dynamic> data});
+  Future<ExpenseModel> updateExpense({
+    required String id,
+    required Map<String, dynamic> data,
+  });
+  Future<void> deleteExpense({required String id});
+}

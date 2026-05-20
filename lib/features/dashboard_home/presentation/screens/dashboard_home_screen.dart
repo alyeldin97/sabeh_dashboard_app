@@ -10,8 +10,9 @@ import '../../../orders/presentation/cubits/orders_cubit.dart';
 import '../../../orders/data/model/order_model.dart';
 
 class DashboardHomeScreen extends StatefulWidget {
-  const DashboardHomeScreen({super.key, this.branchId});
+  const DashboardHomeScreen({super.key, this.branchId, this.onMenuTap});
   final String? branchId;
+  final VoidCallback? onMenuTap;
 
   @override
   State<DashboardHomeScreen> createState() => _DashboardHomeScreenState();
@@ -166,6 +167,21 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
                 0,
                 Row(
                   children: [
+                    if (widget.onMenuTap != null) ...[
+                      GestureDetector(
+                        onTap: widget.onMenuTap,
+                        child: Container(
+                          width: 40.r,
+                          height: 40.r,
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(Icons.menu_rounded, color: AppColors.white, size: 22.r),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                    ],
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
