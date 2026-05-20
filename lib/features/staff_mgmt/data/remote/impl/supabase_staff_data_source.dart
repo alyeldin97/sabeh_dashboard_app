@@ -58,10 +58,9 @@ class SupabaseStaffDataSource implements StaffDataSource {
           'Content-Type': 'application/json',
         }),
         data: {
-          'email': fakeEmail,
-          'password': password,
+          'email':         fakeEmail,
+          'password':      password,
           'email_confirm': true,
-          'phone': phone,
         },
       );
       final uid = authResp.data['id'] as String;
