@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
@@ -56,13 +58,14 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = context.read<AuthCubit>().state.user;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          _buildAppBar(user?.name ?? 'Staff'),
+          _buildAppBar(user?.name ?? l10n.navStaffFallback, l10n),
           SliverToBoxAdapter(child: SizedBox(height: 20.h)),
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: Responsive.sidePadding(context)),
@@ -77,7 +80,7 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
                     children: [
                       _fade(
                         0,
-                        _SectionHeader('Today at a glance'),
+                        _SectionHeader(l10n.homeGlance),
                       ),
                       SizedBox(height: 14.h),
                       _fade(
@@ -91,25 +94,25 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
                           childAspectRatio: cols >= 4 ? 1.6 : 1.4,
                           children: [
                             _StatCard(
-                              label: 'Total Orders',
+                              label: l10n.homeTotalOrders,
                               value: '${orders.length}',
                               icon: Icons.receipt_long_rounded,
                               color: AppColors.primaryDeep,
                             ),
                             _StatCard(
-                              label: 'Pending',
+                              label: l10n.homePending,
                               value: '${orders.where((o) => o.status == OrderStatus.pending).length}',
                               icon: Icons.pending_actions_rounded,
                               color: const Color(0xFFE65100),
                             ),
                             _StatCard(
-                              label: 'In Progress',
+                              label: l10n.homeInProgress,
                               value: '${orders.where((o) => o.status == OrderStatus.preparing || o.status == OrderStatus.confirmed).length}',
                               icon: Icons.restaurant_rounded,
                               color: const Color(0xFF6A1B9A),
                             ),
                             _StatCard(
-                              label: 'Delivered',
+                              label: l10n.homeDelivered,
                               value: '${orders.where((o) => o.status == OrderStatus.delivered).length}',
                               icon: Icons.check_circle_rounded,
                               color: AppColors.primaryMid,
@@ -118,7 +121,9 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
                         ),
                       ),
                       SizedBox(height: 24.h),
-                      _fade(2, _SectionHeader('Active orders')),
+                      _fade(1, const _OnlineUsersCard()),
+                      SizedBox(height: 24.h),
+                      _fade(2, _SectionHeader(l10n.homeActiveOrders)),
                       SizedBox(height: 12.h),
                       _fade(
                         3,
@@ -145,11 +150,12 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
     );
   }
 
-  Widget _buildAppBar(String name) {
+  Widget _buildAppBar(String name, AppLocalizations l10n) {
     return SliverAppBar(
       expandedHeight: 110.h,
       pinned: true,
       floating: false,
+      automaticallyImplyLeading: false,
       backgroundColor: AppColors.primaryDeep,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -187,7 +193,7 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _greeting(),
+                          _greeting(l10n),
                           style: GoogleFonts.nunito(
                             fontSize: Responsive.sp(context, 13),
                             color: AppColors.primaryPale,
@@ -224,11 +230,11 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen>
     );
   }
 
-  String _greeting() {
+  String _greeting(AppLocalizations l10n) {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning ☀️';
-    if (h < 17) return 'Good afternoon 🌤';
-    return 'Good evening 🌙';
+    if (h < 12) return l10n.homeGoodMorning;
+    if (h < 17) return l10n.homeGoodAfternoon;
+    return l10n.homeGoodEvening;
   }
 }
 
@@ -326,6 +332,147 @@ class _StatCard extends StatelessWidget {
   }
 }
 
+class _OnlineUsersCard extends StatefulWidget {
+  const _OnlineUsersCard();
+
+  @override
+  State<_OnlineUsersCard> createState() => _OnlineUsersCardState();
+}
+
+class _OnlineUsersCardState extends State<_OnlineUsersCard> {
+  int? _count;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final cutoff = DateTime.now().subtract(const Duration(minutes: 30)).toUtc();
+      final result = await Supabase.instance.client
+          .from('user_sessions')
+          .select('id')
+          .gte('last_active', cutoff.toIso8601String());
+      if (mounted) setState(() => _count = (result as List).length);
+    } catch (_) {
+      if (mounted) setState(() => _count = 0);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(Responsive.r(context, 14)),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: AppBorderRadius.r12,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1B5E20).withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48.r,
+            height: 48.r,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B5E20).withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(Icons.wifi_rounded, color: const Color(0xFF1B5E20), size: 24.r),
+                Positioned(
+                  top: 8.r,
+                  right: 8.r,
+                  child: Container(
+                    width: 8.r,
+                    height: 8.r,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF4CAF50),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 14.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.analyticsOnlineNow,
+                  style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 11),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textLight,
+                  ),
+                ),
+                _count == null
+                    ? SizedBox(height: 20.h, width: 40.w,
+                        child: const LinearProgressIndicator())
+                    : Text(
+                        '$_count',
+                        style: GoogleFonts.nunito(
+                          fontSize: Responsive.sp(context, 28),
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                Text(
+                  AppLocalizations.of(context)!.analyticsActiveInLast(30),
+                  style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 11),
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6.r,
+                  height: 6.r,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF4CAF50),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: 4.w),
+                Text(
+                  AppLocalizations.of(context)!.analyticsLive,
+                  style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 11),
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF2E7D32),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ActiveOrdersPreview extends StatelessWidget {
   const _ActiveOrdersPreview({required this.orders});
   final List<OrderModel> orders;
@@ -345,7 +492,7 @@ class _ActiveOrdersPreview extends StatelessWidget {
             Icon(Icons.check_circle_outline_rounded, size: 40.r, color: AppColors.primaryLight),
             SizedBox(height: 8.h),
             Text(
-              'All caught up!',
+              AppLocalizations.of(context)!.homeAllCaughtUp,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 15),
                 fontWeight: FontWeight.w700,
@@ -353,7 +500,7 @@ class _ActiveOrdersPreview extends StatelessWidget {
               ),
             ),
             Text(
-              'No active orders right now',
+              AppLocalizations.of(context)!.homeNoActiveOrders,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 13),
                 color: AppColors.textLight,
@@ -401,7 +548,7 @@ class _ActiveOrdersPreview extends StatelessWidget {
                   ),
                 ),
                 title: Text(
-                  '#${o.id.substring(0, 8).toUpperCase()}',
+                  '#${o.orderNumber}',
                   style: GoogleFonts.nunito(
                     fontSize: Responsive.sp(context, 14),
                     fontWeight: FontWeight.w700,

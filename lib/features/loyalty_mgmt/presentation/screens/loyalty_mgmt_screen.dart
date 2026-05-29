@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
@@ -68,6 +69,7 @@ class _LoyaltyMgmtScreenState extends State<LoyaltyMgmtScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocConsumer<LoyaltyCubit, LoyaltyState>(
       listener: (context, state) {
         if (state.actionStatus == LoyaltyMgmtStatus.failure &&
@@ -87,8 +89,9 @@ class _LoyaltyMgmtScreenState extends State<LoyaltyMgmtScreen>
           appBar: AppBar(
             backgroundColor: AppColors.primaryDeep,
             foregroundColor: AppColors.white,
+            automaticallyImplyLeading: false,
             title: Text(
-              'Loyalty Management',
+              l10n.loyaltyTitle,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 18),
                 fontWeight: FontWeight.w700,
@@ -112,11 +115,11 @@ class _LoyaltyMgmtScreenState extends State<LoyaltyMgmtScreen>
               labelColor: AppColors.white,
               unselectedLabelColor: Colors.white60,
               onTap: (_) => setState(() {}),
-              tabs: const [
-                Tab(text: 'Rules'),
-                Tab(text: 'Spend Milestones'),
-                Tab(text: 'Points Rewards'),
-                Tab(text: 'Transactions'),
+              tabs: [
+                Tab(text: l10n.loyaltyTabRules),
+                Tab(text: l10n.loyaltyTabSpend),
+                Tab(text: l10n.loyaltyTabPoints),
+                Tab(text: l10n.loyaltyTabTransactions),
               ],
             ),
             actions: [
@@ -124,7 +127,7 @@ class _LoyaltyMgmtScreenState extends State<LoyaltyMgmtScreen>
                 IconButton(
                   icon: Icon(Icons.refresh_rounded, size: 22.r),
                   onPressed: () => context.read<LoyaltyCubit>().loadAll(),
-                  tooltip: 'Refresh',
+                  tooltip: l10n.analyticsRefresh,
                 ),
             ],
           ),
@@ -203,6 +206,7 @@ class _RulesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (rules.isEmpty) {
       return _EmptyState(
         icon: Icons.workspace_premium_outlined,
@@ -257,7 +261,10 @@ class _RuleCard extends StatelessWidget {
               children: [
                 Text(rule.name,
                     style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 15), fontWeight: FontWeight.w700, color: AppColors.textDark)),
-                Text(rule.ruleType == 'cashback_event' ? 'Cashback Event' : 'Base Earn',
+                Text(
+                  rule.ruleType == 'cashback_event'
+                    ? AppLocalizations.of(context)!.loyaltyTypeCashback
+                    : AppLocalizations.of(context)!.loyaltyTypeBaseEarn,
                     style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight)),
               ],
             )),
@@ -294,6 +301,7 @@ class _SpendGoalsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (goals.isEmpty) {
       return _EmptyState(
         icon: Icons.trending_up_rounded,
@@ -322,6 +330,7 @@ class _SpendGoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     Color rewardColor;
     IconData rewardIcon;
     String rewardLabel;
@@ -329,7 +338,7 @@ class _SpendGoalCard extends StatelessWidget {
       case 'free_product':
         rewardColor = AppColors.accentGold;
         rewardIcon  = Icons.redeem_outlined;
-        rewardLabel = 'Free Product';
+        rewardLabel = l10n.loyaltyGoalFormFreeProduct;
         break;
       case 'discount':
         rewardColor = const Color(0xFF6A1B9A);
@@ -339,7 +348,7 @@ class _SpendGoalCard extends StatelessWidget {
       default:
         rewardColor = const Color(0xFF1565C0);
         rewardIcon  = Icons.delivery_dining_outlined;
-        rewardLabel = 'Free Delivery';
+        rewardLabel = l10n.loyaltyGoalFormFreeDelivery;
     }
 
     return Container(
@@ -403,6 +412,7 @@ class _PointsRewardsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (goals.isEmpty) {
       return _EmptyState(
         icon: Icons.card_giftcard_outlined,
@@ -477,7 +487,9 @@ class _PointsRewardCard extends StatelessWidget {
                 color: AppColors.primaryDeep),
             _Chip(
               icon: isFreeDelivery ? Icons.delivery_dining_outlined : Icons.redeem_outlined,
-              label: isFreeDelivery ? 'Free Delivery' : 'Free Product',
+              label: isFreeDelivery
+                ? AppLocalizations.of(context)!.loyaltyGoalFormFreeDelivery
+                : AppLocalizations.of(context)!.loyaltyGoalFormFreeProduct,
               color: isFreeDelivery ? const Color(0xFF1565C0) : AppColors.accentGold,
             ),
           ]),
@@ -501,6 +513,7 @@ class _TransactionsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(children: [
       Container(
         color: AppColors.white,
@@ -510,7 +523,7 @@ class _TransactionsTab extends StatelessWidget {
           onChanged: onSearch,
           style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), color: AppColors.textDark),
           decoration: InputDecoration(
-            hintText: 'Filter by customer ID…',
+            hintText: l10n.loyaltyFilterCustomer,
             hintStyle: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), color: AppColors.textLight),
             prefixIcon: Icon(Icons.search_rounded, color: AppColors.textLight, size: 20.r),
             suffixIcon: searchCtrl.text.isNotEmpty
@@ -529,7 +542,7 @@ class _TransactionsTab extends StatelessWidget {
       ),
       Expanded(
         child: transactions.isEmpty
-            ? _EmptyState(icon: Icons.receipt_long_outlined, title: 'No transactions', subtitle: 'Loyalty transactions will appear here')
+            ? _EmptyState(icon: Icons.receipt_long_outlined, title: l10n.loyaltyNoTransactions, subtitle: l10n.loyaltyTransactionsHint)
             : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                 itemCount: transactions.length,

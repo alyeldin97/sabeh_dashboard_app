@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
+import '../../../../core/locale/locale_cubit.dart';
 import '../../../../core/styling/colors.dart';
 import '../../../app_settings/presentation/cubits/app_settings_cubit.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
@@ -22,6 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _maxPtsCtrl       = TextEditingController();
   final _refBonusCtrl     = TextEditingController();
   final _refRewardCtrl    = TextEditingController();
+  final _onlineWindowCtrl = TextEditingController();
   bool _feeEnabled = false;
   bool _dirty = false;
 
@@ -30,11 +33,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.didChangeDependencies();
     final settings = context.read<AppSettingsCubit>().state.settings;
     if (settings != null && !_dirty) {
-      _feeCtrl.text       = settings.serviceFeeValue.toStringAsFixed(2);
-      _feeEnabled         = settings.serviceFeeEnabled;
-      _maxPtsCtrl.text    = settings.loyaltyMaxPointsPerOrder.toString();
-      _refBonusCtrl.text  = settings.loyaltyReferralBonus.toString();
-      _refRewardCtrl.text = settings.loyaltyReferralReward.toString();
+      _feeCtrl.text          = settings.serviceFeeValue.toStringAsFixed(2);
+      _feeEnabled            = settings.serviceFeeEnabled;
+      _maxPtsCtrl.text       = settings.loyaltyMaxPointsPerOrder.toString();
+      _refBonusCtrl.text     = settings.loyaltyReferralBonus.toString();
+      _refRewardCtrl.text    = settings.loyaltyReferralReward.toString();
+      _onlineWindowCtrl.text = settings.onlineWindowMinutes.toString();
     }
   }
 
@@ -44,20 +48,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _maxPtsCtrl.dispose();
     _refBonusCtrl.dispose();
     _refRewardCtrl.dispose();
+    _onlineWindowCtrl.dispose();
     super.dispose();
   }
 
   void _save() {
-    final value      = double.tryParse(_feeCtrl.text) ?? 0;
-    final maxPts     = int.tryParse(_maxPtsCtrl.text) ?? 0;
-    final refBonus   = int.tryParse(_refBonusCtrl.text) ?? 50;
-    final refReward  = int.tryParse(_refRewardCtrl.text) ?? 50;
+    final value        = double.tryParse(_feeCtrl.text) ?? 0;
+    final maxPts       = int.tryParse(_maxPtsCtrl.text) ?? 0;
+    final refBonus     = int.tryParse(_refBonusCtrl.text) ?? 50;
+    final refReward    = int.tryParse(_refRewardCtrl.text) ?? 50;
+    final onlineWindow = (int.tryParse(_onlineWindowCtrl.text) ?? 3).clamp(1, 60);
     context.read<AppSettingsCubit>().save(
           serviceFeeValue:          value,
           serviceFeeEnabled:        _feeEnabled,
           loyaltyMaxPointsPerOrder: maxPts,
           loyaltyReferralBonus:     refBonus,
           loyaltyReferralReward:    refReward,
+          onlineWindowMinutes:      onlineWindow,
         );
     setState(() => _dirty = false);
     FocusScope.of(context).unfocus();
@@ -65,12 +72,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
+        automaticallyImplyLeading: false,
         title: Text(
-          'Settings',
+          l10n.settingsTitle,
           style: GoogleFonts.nunito(
             fontSize: Responsive.sp(context, 20),
             fontWeight: FontWeight.w700,
@@ -81,16 +90,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: BlocListener<AppSettingsCubit, AppSettingsState>(
         listener: (context, state) {
           if (state.status == AppSettingsStatus.loaded && state.settings != null && !_dirty) {
-            _feeCtrl.text       = state.settings!.serviceFeeValue.toStringAsFixed(2);
-            _maxPtsCtrl.text    = state.settings!.loyaltyMaxPointsPerOrder.toString();
-            _refBonusCtrl.text  = state.settings!.loyaltyReferralBonus.toString();
-            _refRewardCtrl.text = state.settings!.loyaltyReferralReward.toString();
+            _feeCtrl.text          = state.settings!.serviceFeeValue.toStringAsFixed(2);
+            _maxPtsCtrl.text       = state.settings!.loyaltyMaxPointsPerOrder.toString();
+            _refBonusCtrl.text     = state.settings!.loyaltyReferralBonus.toString();
+            _refRewardCtrl.text    = state.settings!.loyaltyReferralReward.toString();
+            _onlineWindowCtrl.text = state.settings!.onlineWindowMinutes.toString();
             setState(() => _feeEnabled = state.settings!.serviceFeeEnabled);
           }
           if (state.status == AppSettingsStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.errorMessage ?? 'Failed to save'),
+                content: Text(state.errorMessage ?? l10n.settingsSaveFailed),
                 backgroundColor: AppColors.error,
               ),
             );
@@ -140,7 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              user?.name ?? 'Staff',
+                              user?.name ?? l10n.navStaffFallback,
                               style: GoogleFonts.nunito(
                                 fontSize: Responsive.sp(context, 16),
                                 fontWeight: FontWeight.w700,
@@ -203,7 +213,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               SizedBox(width: 12.w),
                               Text(
-                                'Service Fee',
+                                l10n.settingsServiceFee,
                                 style: GoogleFonts.nunito(
                                   fontSize: Responsive.sp(context, 16),
                                   fontWeight: FontWeight.w700,
@@ -222,7 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Show in checkout',
+                                    l10n.settingsShowInCheckout,
                                     style: GoogleFonts.nunito(
                                       fontSize: Responsive.sp(context, 14),
                                       fontWeight: FontWeight.w600,
@@ -230,7 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'Appears as a line item on the order summary',
+                                    l10n.settingsShowInCheckoutSubtitle,
                                     style: GoogleFonts.nunito(
                                       fontSize: Responsive.sp(context, 11),
                                       color: AppColors.textLight,
@@ -259,7 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                           // Fee value field
                           Text(
-                            'Fee Amount (EGP)',
+                            l10n.settingsFeeAmount,
                             style: GoogleFonts.nunito(
                               fontSize: Responsive.sp(context, 13),
                               fontWeight: FontWeight.w600,
@@ -307,7 +317,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                           // Max loyalty points per order
                           Text(
-                            'Max Points Per Order (0 = unlimited)',
+                            l10n.settingsMaxPoints,
                             style: GoogleFonts.nunito(
                               fontSize: Responsive.sp(context, 13),
                               fontWeight: FontWeight.w600,
@@ -350,9 +360,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                           SizedBox(height: 16.h),
 
+                          // Online presence window
+                          Text(
+                            l10n.settingsOnlineWindow,
+                            style: GoogleFonts.nunito(
+                              fontSize: Responsive.sp(context, 13),
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            l10n.settingsOnlineWindowDesc,
+                            style: GoogleFonts.nunito(
+                              fontSize: Responsive.sp(context, 11),
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          TextField(
+                            controller: _onlineWindowCtrl,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            style: GoogleFonts.nunito(
+                              fontSize: Responsive.sp(context, 15),
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
+                            onChanged: (_) => setState(() => _dirty = true),
+                            decoration: InputDecoration(
+                              hintText: '3',
+                              suffixText: 'min',
+                              prefixIcon: Icon(Icons.wifi_rounded, size: 18, color: AppColors.textLight),
+                              filled: true,
+                              fillColor: AppColors.scaffoldBg,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              border: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: AppColors.border)),
+                              enabledBorder: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: AppColors.border)),
+                              focusedBorder: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: AppColors.primaryMid, width: 2)),
+                            ),
+                          ),
+
+                          SizedBox(height: 16.h),
+
                           // Referral bonus (referrer gets this)
                           Text(
-                            'Referral Bonus — Referrer (pts)',
+                            l10n.settingsReferralBonusReferrer,
                             style: GoogleFonts.nunito(
                               fontSize: Responsive.sp(context, 13),
                               fontWeight: FontWeight.w600,
@@ -386,7 +439,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                           // Referral reward (new user gets this)
                           Text(
-                            'Referral Reward — New User (pts)',
+                            l10n.settingsReferralRewardNew,
                             style: GoogleFonts.nunito(
                               fontSize: Responsive.sp(context, 13),
                               fontWeight: FontWeight.w600,
@@ -438,13 +491,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           strokeWidth: 2, color: Colors.white),
                                     )
                                   : Text(
-                                      'Save Changes',
+                                      l10n.settingsSaveChanges,
                                       style: GoogleFonts.nunito(
                                         fontSize: Responsive.sp(context, 14),
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
                             ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Language selector
+                BlocBuilder<LocaleCubit, Locale>(
+                  builder: (context, locale) {
+                    final isArabic = locale.languageCode == 'ar';
+                    return Container(
+                      padding: EdgeInsets.all(16.r),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: AppBorderRadius.r12,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 36.r,
+                                height: 36.r,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: AppBorderRadius.r8,
+                                ),
+                                child: const Icon(
+                                  Icons.language_rounded,
+                                  color: Color(0xFF2E7D32),
+                                  size: 20,
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Text(
+                                l10n.settingsLanguage,
+                                style: GoogleFonts.nunito(
+                                  fontSize: Responsive.sp(context, 16),
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _LangOption(
+                                  label: l10n.settingsLanguageEnglish,
+                                  selected: !isArabic,
+                                  onTap: () => context.read<LocaleCubit>().setLocale(const Locale('en')),
+                                ),
+                              ),
+                              SizedBox(width: 10.w),
+                              Expanded(
+                                child: _LangOption(
+                                  label: l10n.settingsLanguageArabic,
+                                  selected: isArabic,
+                                  onTap: () => context.read<LocaleCubit>().setLocale(const Locale('ar')),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -470,7 +590,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                     icon: Icon(Icons.logout_rounded, color: AppColors.error, size: 20.r),
                     label: Text(
-                      'Sign Out',
+                      l10n.settingsSignOut,
                       style: GoogleFonts.nunito(
                         fontSize: Responsive.sp(context, 15),
                         fontWeight: FontWeight.w700,
@@ -486,6 +606,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _LangOption extends StatelessWidget {
+  const _LangOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.symmetric(vertical: 10.h),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryDeep : AppColors.scaffoldBg,
+          borderRadius: AppBorderRadius.r8,
+          border: Border.all(
+            color: selected ? AppColors.primaryDeep : AppColors.border,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+              fontSize: Responsive.sp(context, 14),
+              fontWeight: FontWeight.w700,
+              color: selected ? AppColors.white : AppColors.textDark,
+            ),
+          ),
         ),
       ),
     );

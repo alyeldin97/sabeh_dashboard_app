@@ -35,4 +35,25 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<Customer> createCustomer({required String name, String? phone, String? email}) =>
       _src.createCustomer(name: name, phone: phone, email: email);
+
+  @override
+  Future<CustomerAddress> createCustomerAddress({
+    required String customerId,
+    String? label,
+    required String street,
+    String? building,
+    String? floor,
+    String? apartment,
+    String? landmark,
+    bool isDefault = false,
+  }) => _src.createCustomerAddress(
+    customerId: customerId,
+    label: label,
+    street: street,
+    building: building,
+    floor: floor,
+    apartment: apartment,
+    landmark: landmark,
+    isDefault: isDefault,
+  );
 }

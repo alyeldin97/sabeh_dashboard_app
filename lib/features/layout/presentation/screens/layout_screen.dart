@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/navigation/cubits/navigation_cubit.dart';
@@ -13,7 +14,6 @@ import '../../../branches/presentation/screens/branches_mgmt_screen.dart';
 import '../../../delivery_zones/presentation/screens/delivery_zones_mgmt_screen.dart';
 import '../../../categories/presentation/screens/categories_mgmt_screen.dart';
 import '../../../dashboard_home/presentation/screens/dashboard_home_screen.dart';
-import '../../../delivery/presentation/screens/delivery_screen.dart';
 import '../../../dispatch_board/presentation/screens/dispatch_board_screen.dart';
 import '../../../orders/presentation/screens/orders_screen.dart';
 import '../../../products/presentation/screens/products_mgmt_screen.dart';
@@ -23,6 +23,8 @@ import '../../../loyalty_mgmt/presentation/screens/loyalty_mgmt_screen.dart';
 import '../../../staff_mgmt/presentation/screens/staff_mgmt_screen.dart';
 import '../../../promo_codes/presentation/screens/promo_codes_screen.dart';
 import '../../../banners/presentation/screens/banners_mgmt_screen.dart';
+import '../../../csv_manager/presentation/screens/csv_manager_screen.dart';
+import '../../../popup_ads/presentation/screens/popup_ads_mgmt_screen.dart';
 
 class LayoutScreen extends StatefulWidget {
   static const String routeName = '/layout';
@@ -37,10 +39,11 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = context.read<AuthCubit>().state.user;
     final role = user?.role ?? StaffRole.customerService;
     final branchId = user?.branchId;
-    final tabs = _tabsForRole(role, branchId);
+    final tabs = _tabsForRole(role, branchId, l10n);
     final isWeb = Responsive.isWeb(context);
 
     return BlocListener<AuthCubit, AuthState>(
@@ -77,18 +80,26 @@ class _LayoutScreenState extends State<LayoutScreen> {
           );
         }
 
-        return Scaffold(
-          key: _scaffoldKey,
-          drawer: tabs.length > 1
-              ? _MobileDrawer(
-                  tabs: tabs,
-                  currentIndex: safeIndex,
-                  user: user,
-                )
-              : null,
-          body: IndexedStack(
-            index: safeIndex,
-            children: tabs.map((t) => t.screen).toList(),
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && (_scaffoldKey.currentState?.isDrawerOpen ?? false)) {
+              _scaffoldKey.currentState?.closeDrawer();
+            }
+          },
+          child: Scaffold(
+            key: _scaffoldKey,
+            drawer: tabs.length > 1
+                ? _MobileDrawer(
+                    tabs: tabs,
+                    currentIndex: safeIndex,
+                    user: user,
+                  )
+                : null,
+            body: IndexedStack(
+              index: safeIndex,
+              children: tabs.map((t) => t.screen).toList(),
+            ),
           ),
         );
       },
@@ -96,7 +107,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
     );
   }
 
-  List<_TabDef> _tabsForRole(StaffRole role, String? branchId) {
+  List<_TabDef> _tabsForRole(StaffRole role, String? branchId, AppLocalizations l10n) {
     void openDrawer() => _scaffoldKey.currentState?.openDrawer();
 
     switch (role) {
@@ -106,55 +117,52 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.dashboard_outlined,
             activeIcon: Icons.dashboard_rounded,
-            label: 'Home',
+            label: l10n.navHome,
             screen: DashboardHomeScreen(branchId: branchId, onMenuTap: openDrawer),
           ),
           _TabDef(
             icon: Icons.receipt_long_outlined,
             activeIcon: Icons.receipt_long_rounded,
-            label: 'Orders',
+            label: l10n.navOrders,
             screen: OrdersScreen(branchId: branchId),
-          ),
-          _TabDef(
-            icon: Icons.delivery_dining_outlined,
-            activeIcon: Icons.delivery_dining_rounded,
-            label: 'Delivery',
-            screen: DeliveryScreen(branchId: branchId),
           ),
           _TabDef(
             icon: Icons.view_kanban_outlined,
             activeIcon: Icons.view_kanban_rounded,
-            label: 'Dispatch',
+            label: l10n.navDispatch,
             screen: DispatchBoardScreen(branchId: branchId),
           ),
           _TabDef(
             icon: Icons.bar_chart_rounded,
             activeIcon: Icons.bar_chart_rounded,
-            label: 'Analytics',
-            screen: AnalyticsScreen(branchId: branchId),
+            label: l10n.navAnalytics,
+            screen: BlocProvider(
+              create: (_) => DependencyInjector().appSettingsCubit,
+              child: AnalyticsScreen(branchId: branchId),
+            ),
           ),
           _TabDef(
             icon: Icons.inventory_2_outlined,
             activeIcon: Icons.inventory_2_rounded,
-            label: 'Products',
+            label: l10n.navProducts,
             screen: ProductsMgmtScreen(),
           ),
           _TabDef(
             icon: Icons.grid_view_outlined,
             activeIcon: Icons.grid_view_rounded,
-            label: 'Categories',
+            label: l10n.navCategories,
             screen: CategoriesMgmtScreen(),
           ),
           _TabDef(
             icon: Icons.store_outlined,
             activeIcon: Icons.store_rounded,
-            label: 'Branches',
+            label: l10n.navBranches,
             screen: const BranchesMgmtScreen(),
           ),
           _TabDef(
             icon: Icons.map_outlined,
             activeIcon: Icons.map_rounded,
-            label: 'Zones',
+            label: l10n.navZones,
             screen: BlocProvider(
               create: (_) => DependencyInjector().deliveryZonesCubit,
               child: const DeliveryZonesMgmtScreen(),
@@ -163,7 +171,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
-            label: 'Settings',
+            label: l10n.navSettings,
             screen: BlocProvider(
               create: (_) => DependencyInjector().appSettingsCubit,
               child: const SettingsScreen(),
@@ -172,7 +180,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.card_giftcard_outlined,
             activeIcon: Icons.card_giftcard_rounded,
-            label: 'Loyalty',
+            label: l10n.navLoyalty,
             screen: BlocProvider(
               create: (_) => DependencyInjector().loyaltyCubit..loadAll(),
               child: const LoyaltyMgmtScreen(),
@@ -181,13 +189,13 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.people_outline_rounded,
             activeIcon: Icons.people_rounded,
-            label: 'Customers',
+            label: l10n.navCustomers,
             screen: const CustomersScreen(),
           ),
           _TabDef(
             icon: Icons.badge_outlined,
             activeIcon: Icons.badge_rounded,
-            label: 'Staff',
+            label: l10n.navStaff,
             screen: BlocProvider(
               create: (_) => DependencyInjector().staffCubit,
               child: const StaffMgmtScreen(),
@@ -196,7 +204,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.discount_outlined,
             activeIcon: Icons.discount_rounded,
-            label: 'Promos',
+            label: l10n.navPromos,
             screen: BlocProvider(
               create: (_) => DependencyInjector().promoCodesCubit,
               child: const PromoCodesScreen(),
@@ -205,10 +213,25 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.image_outlined,
             activeIcon: Icons.image_rounded,
-            label: 'Banners',
+            label: l10n.navBanners,
             screen: BlocProvider(
               create: (_) => DependencyInjector().bannersCubit,
               child: const BannersMgmtScreen(),
+            ),
+          ),
+          _TabDef(
+            icon: Icons.campaign_outlined,
+            activeIcon: Icons.campaign_rounded,
+            label: l10n.navAds,
+            screen: const PopupAdsMgmtScreen(),
+          ),
+          _TabDef(
+            icon: Icons.import_export_rounded,
+            activeIcon: Icons.import_export_rounded,
+            label: l10n.navCsv,
+            screen: BlocProvider(
+              create: (_) => DependencyInjector().csvManagerCubit,
+              child: const CsvManagerScreen(),
             ),
           ),
         ];
@@ -218,13 +241,13 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.receipt_long_outlined,
             activeIcon: Icons.receipt_long_rounded,
-            label: 'Orders',
+            label: l10n.navOrders,
             screen: OrdersScreen(branchId: branchId),
           ),
           _TabDef(
             icon: Icons.people_outline_rounded,
             activeIcon: Icons.people_rounded,
-            label: 'Customers',
+            label: l10n.navCustomers,
             screen: const CustomersScreen(),
           ),
         ];
@@ -234,13 +257,13 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.view_kanban_outlined,
             activeIcon: Icons.view_kanban_rounded,
-            label: 'Dispatch',
+            label: l10n.navDispatch,
             screen: DispatchBoardScreen(branchId: branchId),
           ),
           _TabDef(
             icon: Icons.local_shipping_outlined,
             activeIcon: Icons.local_shipping_rounded,
-            label: 'Orders',
+            label: l10n.navOrders,
             screen: OrdersScreen(branchId: branchId),
           ),
         ];
@@ -250,7 +273,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
           _TabDef(
             icon: Icons.delivery_dining_outlined,
             activeIcon: Icons.delivery_dining_rounded,
-            label: 'My Routes',
+            label: l10n.navMyRoutes,
             screen: OrdersScreen(branchId: branchId),
           ),
         ];
@@ -355,7 +378,7 @@ class _SidebarHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user?.name ?? 'Staff',
+                    user?.name ?? AppLocalizations.of(context)!.navStaffFallback,
                     style: GoogleFonts.nunito(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -454,7 +477,7 @@ class _SidebarLogout extends StatelessWidget {
               if (isWide) ...[
                 const SizedBox(width: 12),
                 Text(
-                  'Sign Out',
+                  AppLocalizations.of(context)!.navSignOut,
                   style: GoogleFonts.nunito(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -517,7 +540,7 @@ class _MobileDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user?.name ?? 'Staff',
+                          user?.name ?? AppLocalizations.of(context)!.navStaffFallback,
                           style: GoogleFonts.nunito(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -534,7 +557,7 @@ class _MobileDrawer extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => Scaffold.of(context).closeDrawer(),
                     icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 22),
                   ),
                 ],
@@ -552,7 +575,7 @@ class _MobileDrawer extends StatelessWidget {
                   isWide: true,
                   onTap: () {
                     context.read<NavigationCubit>().navigateTo(i);
-                    Navigator.pop(context);
+                    Scaffold.of(context).closeDrawer();
                   },
                 ),
               ),

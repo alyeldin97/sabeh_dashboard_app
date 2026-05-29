@@ -66,6 +66,12 @@ import '../../features/banners/data/repo/banners_repository.dart';
 import '../../features/banners/data/repo/banners_repository_impl.dart';
 import '../../features/banners/presentation/cubits/banners_cubit.dart';
 import '../navigation/cubits/navigation_cubit.dart';
+import '../../features/csv_manager/presentation/cubits/csv_manager_cubit.dart';
+import '../../features/popup_ads/data/remote/popup_ads_data_source.dart';
+import '../../features/popup_ads/data/remote/impl/supabase_popup_ads_data_source.dart';
+import '../../features/popup_ads/data/repo/popup_ads_repository.dart';
+import '../../features/popup_ads/data/repo/popup_ads_repository_impl.dart';
+import '../../features/popup_ads/presentation/cubits/popup_ads_cubit.dart';
 
 class DependencyInjector {
   static final DependencyInjector _singleton = DependencyInjector._internal();
@@ -199,4 +205,20 @@ class DependencyInjector {
   // Navigation
   NavigationCubit get navigationCubit =>
       _deps[NavigationCubit] ??= NavigationCubit();
+
+  // CSV Manager
+  CsvManagerCubit get csvManagerCubit => CsvManagerCubit(
+        productsRepo: productsRepository,
+        customersRepo: customersRepository,
+        ordersRepo: ordersRepository,
+      );
+
+  // Popup Ads
+  PopupAdsDataSource get popupAdsDataSource =>
+      _deps[PopupAdsDataSource] ??= SupabasePopupAdsDataSource(_supabase);
+
+  PopupAdsRepository get popupAdsRepository =>
+      _deps[PopupAdsRepository] ??= PopupAdsRepositoryImpl(popupAdsDataSource);
+
+  PopupAdsCubit get popupAdsCubit => PopupAdsCubit(popupAdsRepository);
 }

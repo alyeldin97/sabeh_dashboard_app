@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../data/model/branch_model.dart';
 import '../cubits/branches_cubit.dart';
 
@@ -82,7 +83,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
             backgroundColor: AppColors.primaryDeep,
             foregroundColor: AppColors.white,
             title: Text(
-              _isEdit ? 'Edit Branch' : 'New Branch',
+              _isEdit ? AppLocalizations.of(context)!.branchFormEditTitle : AppLocalizations.of(context)!.branchFormNewTitle,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 18),
                 fontWeight: FontWeight.w700,
@@ -100,7 +101,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                             strokeWidth: 2, color: Colors.white),
                       )
                     : Text(
-                        'Save',
+                        AppLocalizations.of(context)!.branchFormSave,
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 15),
                           fontWeight: FontWeight.w700,
@@ -116,16 +117,16 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
             child: ListView(
               padding: EdgeInsets.all(20.r),
               children: [
-                _FieldLabel('Branch Name'),
+                _FieldLabel(AppLocalizations.of(context)!.branchFormBranchName),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _nameCtrl,
                   hint: 'e.g. Downtown Branch',
                   icon: Icons.store_outlined,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.branchFormNameRequired : null,
                 ),
                 SizedBox(height: 20.h),
-                _FieldLabel('Latitude'),
+                _FieldLabel(AppLocalizations.of(context)!.branchFormLatitude),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _latCtrl,
@@ -134,13 +135,13 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                   validator: (v) {
                     final d = double.tryParse(v ?? '');
-                    if (d == null) return 'Enter a valid latitude';
-                    if (d < -90 || d > 90) return 'Latitude must be between -90 and 90';
+                    if (d == null) return AppLocalizations.of(context)!.branchFormLatInvalid;
+                    if (d < -90 || d > 90) return AppLocalizations.of(context)!.branchFormLatRange;
                     return null;
                   },
                 ),
                 SizedBox(height: 20.h),
-                _FieldLabel('Longitude'),
+                _FieldLabel(AppLocalizations.of(context)!.branchFormLongitude),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _lngCtrl,
@@ -149,13 +150,13 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                   validator: (v) {
                     final d = double.tryParse(v ?? '');
-                    if (d == null) return 'Enter a valid longitude';
-                    if (d < -180 || d > 180) return 'Longitude must be between -180 and 180';
+                    if (d == null) return AppLocalizations.of(context)!.branchFormLonInvalid;
+                    if (d < -180 || d > 180) return AppLocalizations.of(context)!.branchFormLonRange;
                     return null;
                   },
                 ),
                 SizedBox(height: 20.h),
-                _FieldLabel('Coverage Radius (km)'),
+                _FieldLabel(AppLocalizations.of(context)!.branchFormRadius),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _radiusCtrl,
@@ -164,7 +165,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   validator: (v) {
                     final d = double.tryParse(v ?? '');
-                    if (d == null || d <= 0) return 'Enter a valid radius > 0';
+                    if (d == null || d <= 0) return AppLocalizations.of(context)!.branchFormRadiusInvalid;
                     return null;
                   },
                 ),
@@ -183,7 +184,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Active',
+                            AppLocalizations.of(context)!.branchFormActive,
                             style: GoogleFonts.nunito(
                               fontSize: Responsive.sp(context, 14),
                               color: AppColors.textDark,
@@ -207,7 +208,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                         : () => _confirmDelete(context),
                     icon: Icon(Icons.delete_outline_rounded, size: 18.r, color: AppColors.error),
                     label: Text(
-                      'Delete Branch',
+                      AppLocalizations.of(context)!.branchFormDelete,
                       style: GoogleFonts.nunito(
                         fontSize: Responsive.sp(context, 14),
                         color: AppColors.error,
@@ -234,14 +235,14 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Delete Branch?',
+        title: Text(AppLocalizations.of(context)!.branchFormDeleteTitle,
             style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         content: Text('This will permanently delete "${widget.branch!.name}". This cannot be undone.',
             style: GoogleFonts.nunito()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.branchFormCancel),
           ),
           TextButton(
             onPressed: () async {
@@ -251,7 +252,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
               final ok = await cubit.delete(id: widget.branch!.id);
               if (ok && mounted) nav.pop();
             },
-            child: Text('Delete',
+            child: Text(AppLocalizations.of(context)!.branchFormDeleteConfirm,
                 style: GoogleFonts.nunito(color: AppColors.error, fontWeight: FontWeight.w700)),
           ),
         ],

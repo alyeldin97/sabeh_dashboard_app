@@ -34,6 +34,32 @@ class SupabaseExpensesDataSource implements ExpensesDataSource {
   }
 
   @override
+  Future<List<ExpenseModel>> getExpensesByDateRange({
+    required DateTime from,
+    required DateTime to,
+    String? branchId,
+  }) async {
+    AppLogger.net(_tag, 'getExpensesByDateRange', 'from=${_fmtDate(from)} to=${_fmtDate(to)}');
+    try {
+      var q = _client
+          .from('expenses')
+          .select()
+          .gte('date', _fmtDate(from))
+          .lte('date', _fmtDate(to));
+      if (branchId != null) q = q.eq('branch_id', branchId) as dynamic;
+      final rows = await (q as dynamic).order('date', ascending: true);
+      final result = (rows as List)
+          .map((r) => ExpenseModel.fromJson(r as Map<String, dynamic>))
+          .toList();
+      AppLogger.i(_tag, 'getExpensesByDateRange → ${result.length}');
+      return result;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'getExpensesByDateRange failed', e, st);
+      rethrow;
+    }
+  }
+
+  @override
   Future<ExpenseModel> createExpense({required Map<String, dynamic> data}) async {
     AppLogger.net(_tag, 'createExpense', data.toString());
     try {

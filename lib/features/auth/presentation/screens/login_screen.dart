@@ -1,9 +1,11 @@
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/styling/colors.dart';
+import '../../../../core/styling/images.dart';
 import '../../../../core/styling/padding.dart';
 import '../../../../core/styling/text_styles.dart';
 import '../cubits/auth_cubit.dart';
@@ -78,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       },
       builder: (context, state) {
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
           body: SafeArea(
             child: SingleChildScrollView(
@@ -89,29 +92,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     SizedBox(height: 48.h),
                     Center(
-                      child: Container(
-                        width: 80.r,
+                      child: Image.asset(
+                        AppImages.logo,
+                        width: 120.r,
                         height: 80.r,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryDeep,
-                          borderRadius: AppBorderRadius.r16,
-                        ),
-                        child: Icon(
-                          Icons.eco_rounded,
-                          color: AppColors.white,
-                          size: 40.r,
-                        ),
+                        fit: BoxFit.contain,
                       ),
                     ),
                     SizedBox(height: 20.h),
                     Text(
-                      'Sabeh Dashboard',
+                      l10n.authAppTitle,
                       style: AppTextStyles.heading2(context),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 6.h),
                     Text(
-                      'Staff portal — sign in to continue',
+                      l10n.authSubtitle,
                       style: AppTextStyles.bodySmall(context),
                       textAlign: TextAlign.center,
                     ),
@@ -121,10 +117,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       validator: (v) => (v == null || v.trim().replaceAll(RegExp(r'[^0-9]'), '').length < 7)
-                          ? 'Enter a valid phone number'
+                          ? l10n.authPhoneError
                           : null,
                       decoration: _inputDecoration(
-                        label: 'Phone Number',
+                        label: l10n.authPhoneLabel,
                         icon: Icons.phone_outlined,
                       ),
                     ),
@@ -133,10 +129,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordCtrl,
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
-                      validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                      validator: (v) => (v == null || v.isEmpty) ? l10n.authPasswordError : null,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: _inputDecoration(
-                        label: 'Password',
+                        label: l10n.authPasswordLabel,
                         icon: Icons.lock_outlined,
                         suffix: GestureDetector(
                           onTap: () => setState(
@@ -175,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: AppColors.white,
                                 ),
                               )
-                            : Text('Sign In', style: AppTextStyles.button(context)),
+                            : Text(l10n.authSignIn, style: AppTextStyles.button(context)),
                       ),
                     ),
                   ],

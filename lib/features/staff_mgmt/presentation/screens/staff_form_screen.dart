@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../auth/data/model/staff_user.dart';
 import '../../../branches/data/model/branch_model.dart';
 import '../../../branches/presentation/cubits/branches_cubit.dart';
@@ -76,7 +77,7 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
         title: Text(
-          _isEditing ? 'Edit Staff Member' : 'Add Staff Member',
+          _isEditing ? AppLocalizations.of(context)!.staffFormEditTitle : AppLocalizations.of(context)!.staffFormNewTitle,
           style: GoogleFonts.nunito(
               fontSize: Responsive.sp(context, 18),
               fontWeight: FontWeight.w700,
@@ -92,40 +93,40 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
               padding: EdgeInsets.all(20.r),
               children: [
                 _field(
-                  label: 'Full Name',
+                  label: AppLocalizations.of(context)!.staffFormFullName,
                   controller: _nameCtrl,
                   icon: Icons.person_outline_rounded,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                      (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.staffFormNameRequired : null,
                 ),
                 SizedBox(height: 16.h),
                 _field(
-                  label: _isEditing ? 'Phone (optional)' : 'Phone Number',
+                  label: _isEditing ? AppLocalizations.of(context)!.staffFormPhoneOptional : AppLocalizations.of(context)!.staffFormPhone,
                   controller: _phoneCtrl,
                   icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
                   validator: _isEditing
                       ? null
                       : (v) => (v == null || v.trim().isEmpty)
-                          ? 'Phone number is required'
+                          ? AppLocalizations.of(context)!.staffFormPhoneRequired
                           : null,
                 ),
                 SizedBox(height: 16.h),
                 if (!_isEditing) ...[
                   _field(
-                    label: 'Temporary Password',
+                    label: AppLocalizations.of(context)!.staffFormTempPassword,
                     controller: _passwordCtrl,
                     icon: Icons.lock_outline_rounded,
                     obscureText: true,
                     validator: (v) => (v == null || v.length < 6)
-                        ? 'Password must be at least 6 characters'
+                        ? AppLocalizations.of(context)!.staffFormPasswordLength
                         : null,
                   ),
                   SizedBox(height: 16.h),
                 ],
 
                 // Role dropdown
-                _Label(text: 'Role'),
+                _Label(text: AppLocalizations.of(context)!.staffFormRole),
                 SizedBox(height: 6.h),
                 DropdownButtonFormField<StaffRole>(
                   value: _role,
@@ -146,13 +147,13 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
 
                 // Branch multi-select (only for scoped roles)
                 if (_role.isScoped) ...[
-                  _Label(text: 'Branches'),
+                  _Label(text: AppLocalizations.of(context)!.staffFormBranches),
                   SizedBox(height: 6.h),
                   BlocBuilder<BranchesCubit, BranchesState>(
                     builder: (context, branchState) {
                       final branches = branchState.branches;
                       if (branches.isEmpty) {
-                        return Text('No branches available',
+                        return Text(AppLocalizations.of(context)!.staffFormNoBranches,
                             style: GoogleFonts.nunito(
                                 color: AppColors.textLight,
                                 fontSize: Responsive.sp(context, 13)));
@@ -178,7 +179,7 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                   FormField<List<String>>(
                     initialValue: _selectedBranchIds,
                     validator: (_) => _role.isScoped && _selectedBranchIds.isEmpty
-                        ? 'Select at least one branch'
+                        ? AppLocalizations.of(context)!.staffFormBranchRequired
                         : null,
                     builder: (field) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -214,7 +215,7 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                             color: AppColors.textLight, size: 20.r),
                         SizedBox(width: 12.w),
                         Expanded(
-                          child: Text('Active',
+                          child: Text(AppLocalizations.of(context)!.staffFormActive,
                               style: GoogleFonts.nunito(
                                   fontSize: Responsive.sp(context, 14),
                                   color: AppColors.textDark)),
@@ -250,7 +251,7 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                                 strokeWidth: 2, color: Colors.white),
                           )
                         : Text(
-                            _isEditing ? 'Save Changes' : 'Create Staff Account',
+                            _isEditing ? AppLocalizations.of(context)!.staffFormSaveChanges : AppLocalizations.of(context)!.staffFormCreate,
                             style: GoogleFonts.nunito(
                                 fontSize: Responsive.sp(context, 15),
                                 fontWeight: FontWeight.w700),

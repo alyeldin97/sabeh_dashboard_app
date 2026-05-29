@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../data/model/customer.dart';
 import '../cubits/customers_cubit.dart';
 import 'customer_detail_screen.dart';
@@ -68,7 +69,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         Icon(Icons.error_outline, size: 48.r, color: AppColors.error),
                         SizedBox(height: 12.h),
                         Text(
-                          state.errorMessage ?? 'Failed to load customers',
+                          state.errorMessage ?? AppLocalizations.of(context)!.customersFailedLoad,
                           style: GoogleFonts.nunito(
                             fontSize: Responsive.sp(context, 14),
                             color: AppColors.textLight,
@@ -79,7 +80,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           onPressed: () =>
                               context.read<CustomersCubit>().load(search: state.query),
                           child: Text(
-                            'Retry',
+                            AppLocalizations.of(context)!.customersRetry,
                             style: GoogleFonts.nunito(
                               fontSize: Responsive.sp(context, 14),
                               color: AppColors.primaryMid,
@@ -101,8 +102,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         SizedBox(height: 16.h),
                         Text(
                           state.query.isEmpty
-                              ? 'No customers yet'
-                              : 'No results for "${state.query}"',
+                              ? AppLocalizations.of(context)!.customersEmpty
+                              : AppLocalizations.of(context)!.customersNoResults(state.query),
                           style: GoogleFonts.nunito(
                             fontSize: Responsive.sp(context, 16),
                             fontWeight: FontWeight.w600,
@@ -157,7 +158,7 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Customers',
+            AppLocalizations.of(context)!.customersTitle,
             style: GoogleFonts.nunito(
               fontSize: Responsive.sp(context, 22),
               fontWeight: FontWeight.w800,
@@ -173,7 +174,7 @@ class _Header extends StatelessWidget {
               color: AppColors.textDark,
             ),
             decoration: InputDecoration(
-              hintText: 'Search by name, email, or phone…',
+              hintText: AppLocalizations.of(context)!.customersSearchHint,
               hintStyle: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 13),
                 color: AppColors.textLight,
@@ -367,7 +368,7 @@ class _TableHeader extends StatelessWidget {
         children: [
           Expanded(
             flex: 3,
-            child: Text('Customer',
+            child: Text(AppLocalizations.of(context)!.customersColCustomer,
                 style: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 12),
                   fontWeight: FontWeight.w700,
@@ -376,7 +377,7 @@ class _TableHeader extends StatelessWidget {
           ),
           Expanded(
             flex: 3,
-            child: Text('Email',
+            child: Text(AppLocalizations.of(context)!.customersColEmail,
                 style: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 12),
                   fontWeight: FontWeight.w700,
@@ -385,7 +386,7 @@ class _TableHeader extends StatelessWidget {
           ),
           Expanded(
             flex: 2,
-            child: Text('Phone',
+            child: Text(AppLocalizations.of(context)!.customersColPhone,
                 style: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 12),
                   fontWeight: FontWeight.w700,
@@ -394,7 +395,7 @@ class _TableHeader extends StatelessWidget {
           ),
           SizedBox(
             width: 80,
-            child: Text('Orders',
+            child: Text(AppLocalizations.of(context)!.customersColOrders,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 12),
@@ -404,7 +405,7 @@ class _TableHeader extends StatelessWidget {
           ),
           SizedBox(
             width: 100,
-            child: Text('Loyalty',
+            child: Text(AppLocalizations.of(context)!.customersColLoyalty,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 12),
@@ -414,7 +415,7 @@ class _TableHeader extends StatelessWidget {
           ),
           SizedBox(
             width: 100,
-            child: Text('Total Spent',
+            child: Text(AppLocalizations.of(context)!.customersColTotalSpent,
                 textAlign: TextAlign.right,
                 style: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 12),

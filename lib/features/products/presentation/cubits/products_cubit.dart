@@ -34,11 +34,12 @@ class ProductsCubit extends Cubit<ProductsState> {
     required List<Map<String, dynamic>> options,
     required List<Map<String, dynamic>> variants,
     required Map<String, int> productInventory,
+    List<String> relatedIds = const [],
     String? branchId,
   }) async {
     AppLogger.i(_tag, 'create name=${fields['name']} branches=${branchIds.length}');
     try {
-      await _repo.createProduct(
+      final product = await _repo.createProduct(
         fields: fields,
         branchIds: branchIds,
         categoryIds: categoryIds,
@@ -46,6 +47,9 @@ class ProductsCubit extends Cubit<ProductsState> {
         variants: variants,
         productInventory: productInventory,
       );
+      if (relatedIds.isNotEmpty) {
+        await _repo.updateRelatedProducts(productId: product.id, relatedIds: relatedIds);
+      }
       AppLogger.i(_tag, 'create success');
       await load(branchId: branchId);
       return true;
@@ -64,19 +68,23 @@ class ProductsCubit extends Cubit<ProductsState> {
     required List<Map<String, dynamic>> options,
     required List<Map<String, dynamic>> variants,
     required Map<String, int> productInventory,
+    List<String> relatedIds = const [],
     String? branchId,
   }) async {
     AppLogger.i(_tag, 'update id=$id branches=${branchIds.length}');
     try {
-      await _repo.updateProduct(
-        id: id,
-        fields: fields,
-        branchIds: branchIds,
-        categoryIds: categoryIds,
-        options: options,
-        variants: variants,
-        productInventory: productInventory,
-      );
+      await Future.wait([
+        _repo.updateProduct(
+          id: id,
+          fields: fields,
+          branchIds: branchIds,
+          categoryIds: categoryIds,
+          options: options,
+          variants: variants,
+          productInventory: productInventory,
+        ),
+        _repo.updateRelatedProducts(productId: id, relatedIds: relatedIds),
+      ]);
       AppLogger.i(_tag, 'update success');
       await load(branchId: branchId);
       return true;

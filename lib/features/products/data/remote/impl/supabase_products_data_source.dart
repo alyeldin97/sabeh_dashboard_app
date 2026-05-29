@@ -19,7 +19,8 @@ class SupabaseProductsDataSource implements ProductsDataSource {
       variant_option_values(option_value_id),
       variant_inventory(branch_id, quantity)
     ),
-    product_inventory(branch_id, quantity)
+    product_inventory(branch_id, quantity),
+    product_related!product_related_product_id_fkey(related_product_id)
   ''';
 
   @override
@@ -210,6 +211,23 @@ class SupabaseProductsDataSource implements ProductsDataSource {
   Future<Product> _fetchProduct(String id) async {
     final row = await _client.from('products').select(_select).eq('id', id).single();
     return Product.fromJson(row);
+  }
+
+  @override
+  Future<void> updateRelatedProducts({
+    required String productId,
+    required List<String> relatedIds,
+  }) async {
+    await _client.from('product_related').delete().eq('product_id', productId);
+    if (relatedIds.isNotEmpty) {
+      await _client.from('product_related').insert(
+        relatedIds.asMap().entries.map((e) => {
+          'product_id':         productId,
+          'related_product_id': e.value,
+          'sort_order':         e.key,
+        }).toList(),
+      );
+    }
   }
 
   @override

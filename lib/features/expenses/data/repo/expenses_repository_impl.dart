@@ -13,6 +13,13 @@ class ExpensesRepositoryImpl implements ExpensesRepository {
   }) => _ds.getExpensesByDate(date: date, branchId: branchId);
 
   @override
+  Future<List<ExpenseModel>> getExpensesByDateRange({
+    required DateTime from,
+    required DateTime to,
+    String? branchId,
+  }) => _ds.getExpensesByDateRange(from: from, to: to, branchId: branchId);
+
+  @override
   Future<ExpenseModel> createExpense({required Map<String, dynamic> data}) =>
       _ds.createExpense(data: data);
 

@@ -191,6 +191,42 @@ class SupabaseCustomersDataSource implements CustomersDataSource {
   }
 
   @override
+  Future<CustomerAddress> createCustomerAddress({
+    required String customerId,
+    String? label,
+    required String street,
+    String? building,
+    String? floor,
+    String? apartment,
+    String? landmark,
+    bool isDefault = false,
+  }) async {
+    AppLogger.net(_tag, 'createCustomerAddress', 'customerId=$customerId label=$label');
+    try {
+      final row = await _supabase
+          .from('customer_addresses')
+          .insert({
+            'customer_id': customerId,
+            if (label != null && label.isNotEmpty) 'label': label,
+            'street': street,
+            if (building != null && building.isNotEmpty) 'building': building,
+            if (floor != null && floor.isNotEmpty) 'floor': floor,
+            if (apartment != null && apartment.isNotEmpty) 'apartment': apartment,
+            if (landmark != null && landmark.isNotEmpty) 'landmark': landmark,
+            'is_default': isDefault,
+          })
+          .select('id, customer_id, label, street, building, floor, apartment, landmark, is_default')
+          .single();
+      final address = CustomerAddress.fromJson(Map<String, dynamic>.from(row));
+      AppLogger.i(_tag, 'createCustomerAddress → id=${address.id}');
+      return address;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'createCustomerAddress failed', e, st);
+      rethrow;
+    }
+  }
+
+  @override
   Future<Customer> createCustomer({
     required String name,
     String? phone,

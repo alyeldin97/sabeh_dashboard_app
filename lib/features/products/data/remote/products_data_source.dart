@@ -19,5 +19,9 @@ abstract class ProductsDataSource {
     required List<Map<String, dynamic>> variants,
     required Map<String, int> productInventory,
   });
+  Future<void> updateRelatedProducts({
+    required String productId,
+    required List<String> relatedIds,
+  });
   Future<void> deleteProduct({required String id});
 }

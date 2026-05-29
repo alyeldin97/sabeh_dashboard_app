@@ -36,20 +36,22 @@ class PromoCodesCubit extends Cubit<PromoCodesState> {
     DateTime? startsAt,
     String? description,
     int maxUsesPerUser = 1,
+    int? cashbackExpiryDays,
   }) async {
-    AppLogger.i(_tag, 'create code=$code');
+    AppLogger.i(_tag, 'create code=$code cashbackExpiryDays=$cashbackExpiryDays');
     emit(state.copyWith(mutationStatus: PromoMutationStatus.saving));
     try {
       await _repo.create(
-        code:           code,
-        type:           type,
-        discountValue:  discountValue,
-        minOrder:       minOrder,
-        maxUses:        maxUses,
-        expiresAt:      expiresAt,
-        startsAt:       startsAt,
-        description:    description,
-        maxUsesPerUser: maxUsesPerUser,
+        code:               code,
+        type:               type,
+        discountValue:      discountValue,
+        minOrder:           minOrder,
+        maxUses:            maxUses,
+        expiresAt:          expiresAt,
+        startsAt:           startsAt,
+        description:        description,
+        maxUsesPerUser:     maxUsesPerUser,
+        cashbackExpiryDays: cashbackExpiryDays,
       );
       await load();
       emit(state.copyWith(mutationStatus: PromoMutationStatus.success));
@@ -75,22 +77,24 @@ class PromoCodesCubit extends Cubit<PromoCodesState> {
     required bool isActive,
     String? description,
     int maxUsesPerUser = 1,
+    int? cashbackExpiryDays,
   }) async {
-    AppLogger.i(_tag, 'update id=$id');
+    AppLogger.i(_tag, 'update id=$id cashbackExpiryDays=$cashbackExpiryDays');
     emit(state.copyWith(mutationStatus: PromoMutationStatus.saving));
     try {
       await _repo.update(
-        id:             id,
-        code:           code,
-        type:           type,
-        discountValue:  discountValue,
-        minOrder:       minOrder,
-        maxUses:        maxUses,
-        expiresAt:      expiresAt,
-        startsAt:       startsAt,
-        isActive:       isActive,
-        description:    description,
-        maxUsesPerUser: maxUsesPerUser,
+        id:                 id,
+        code:               code,
+        type:               type,
+        discountValue:      discountValue,
+        minOrder:           minOrder,
+        maxUses:            maxUses,
+        expiresAt:          expiresAt,
+        startsAt:           startsAt,
+        isActive:           isActive,
+        description:        description,
+        maxUsesPerUser:     maxUsesPerUser,
+        cashbackExpiryDays: cashbackExpiryDays,
       );
       await load();
       emit(state.copyWith(mutationStatus: PromoMutationStatus.success));
@@ -122,16 +126,17 @@ class PromoCodesCubit extends Cubit<PromoCodesState> {
   }
 
   Future<bool> toggleActive({required PromoCodeModel code}) => update(
-        id:            code.id,
-        code:          code.code,
-        type:          code.type,
-        discountValue: code.discountValue,
-        minOrder:      code.minOrder,
-        maxUses:       code.maxUses,
-        expiresAt:     code.expiresAt,
-        startsAt:      code.startsAt,
-        isActive:      !code.isActive,
-        description:   code.description,
-        maxUsesPerUser: code.maxUsesPerUser,
+        id:                 code.id,
+        code:               code.code,
+        type:               code.type,
+        discountValue:      code.discountValue,
+        minOrder:           code.minOrder,
+        maxUses:            code.maxUses,
+        expiresAt:          code.expiresAt,
+        startsAt:           code.startsAt,
+        isActive:           !code.isActive,
+        description:        code.description,
+        maxUsesPerUser:     code.maxUsesPerUser,
+        cashbackExpiryDays: code.cashbackExpiryDays,
       );
 }

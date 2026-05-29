@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/model/expense_model.dart';
 import '../../data/repo/expenses_repository.dart';
 import 'expenses_state.dart';
 
@@ -16,10 +17,21 @@ class ExpensesCubit extends Cubit<ExpensesState> {
     }
   }
 
+  Future<void> loadForDateRange(DateTime from, DateTime to, {String? branchId}) async {
+    emit(state.copyWith(status: ExpensesStatus.loading));
+    try {
+      final expenses = await _repo.getExpensesByDateRange(from: from, to: to, branchId: branchId);
+      emit(state.copyWith(status: ExpensesStatus.success, expenses: expenses));
+    } catch (e) {
+      emit(state.copyWith(status: ExpensesStatus.failure, error: e.toString()));
+    }
+  }
+
   Future<void> add({
     required String name,
     required double value,
     required DateTime date,
+    required ExpenseType type,
     String? branchId,
   }) async {
     try {
@@ -27,6 +39,7 @@ class ExpensesCubit extends Cubit<ExpensesState> {
         'name':  name,
         'value': value,
         'date':  _fmt(date),
+        'type':  type.dbValue,
         if (branchId != null) 'branch_id': branchId,
       };
       final created = await _repo.createExpense(data: data);
@@ -41,9 +54,15 @@ class ExpensesCubit extends Cubit<ExpensesState> {
     required String name,
     required double value,
     required DateTime date,
+    required ExpenseType type,
   }) async {
     try {
-      final data = {'name': name, 'value': value, 'date': _fmt(date)};
+      final data = {
+        'name':  name,
+        'value': value,
+        'date':  _fmt(date),
+        'type':  type.dbValue,
+      };
       final updated = await _repo.updateExpense(id: id, data: data);
       emit(state.copyWith(
         expenses: state.expenses.map((e) => e.id == id ? updated : e).toList(),

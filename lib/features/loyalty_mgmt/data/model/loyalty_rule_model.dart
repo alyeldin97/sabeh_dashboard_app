@@ -12,6 +12,8 @@ class LoyaltyRuleModel extends Equatable {
   final DateTime? validUntil;
   final bool isActive;
   final DateTime createdAt;
+  final bool pointsHaveExpiry;
+  final int? pointsExpiryDays;
 
   const LoyaltyRuleModel({
     required this.id,
@@ -25,6 +27,8 @@ class LoyaltyRuleModel extends Equatable {
     this.validUntil,
     required this.isActive,
     required this.createdAt,
+    this.pointsHaveExpiry = false,
+    this.pointsExpiryDays,
   });
 
   factory LoyaltyRuleModel.fromJson(Map<String, dynamic> j) => LoyaltyRuleModel(
@@ -39,6 +43,8 @@ class LoyaltyRuleModel extends Equatable {
         validUntil: j['valid_until'] != null ? DateTime.tryParse(j['valid_until'] as String) : null,
         isActive: j['is_active'] as bool? ?? true,
         createdAt: DateTime.parse(j['created_at'] as String),
+        pointsHaveExpiry: j['points_have_expiry'] as bool? ?? false,
+        pointsExpiryDays: j['points_expiry_days'] as int?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -51,6 +57,8 @@ class LoyaltyRuleModel extends Equatable {
         if (validFrom != null) 'valid_from': validFrom!.toIso8601String().substring(0, 10),
         if (validUntil != null) 'valid_until': validUntil!.toIso8601String().substring(0, 10),
         'is_active': isActive,
+        'points_have_expiry': pointsHaveExpiry,
+        'points_expiry_days': pointsHaveExpiry ? pointsExpiryDays : null,
       };
 
   LoyaltyRuleModel copyWith({
@@ -65,6 +73,8 @@ class LoyaltyRuleModel extends Equatable {
     DateTime? validUntil,
     bool? isActive,
     DateTime? createdAt,
+    bool? pointsHaveExpiry,
+    int? pointsExpiryDays,
   }) =>
       LoyaltyRuleModel(
         id: id ?? this.id,
@@ -78,6 +88,8 @@ class LoyaltyRuleModel extends Equatable {
         validUntil: validUntil ?? this.validUntil,
         isActive: isActive ?? this.isActive,
         createdAt: createdAt ?? this.createdAt,
+        pointsHaveExpiry: pointsHaveExpiry ?? this.pointsHaveExpiry,
+        pointsExpiryDays: pointsExpiryDays ?? this.pointsExpiryDays,
       );
 
   @override
@@ -93,5 +105,7 @@ class LoyaltyRuleModel extends Equatable {
         validUntil,
         isActive,
         createdAt,
+        pointsHaveExpiry,
+        pointsExpiryDays,
       ];
 }

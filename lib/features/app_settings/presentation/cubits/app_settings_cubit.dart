@@ -28,6 +28,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     int? loyaltyMaxPointsPerOrder,
     int? loyaltyReferralBonus,
     int? loyaltyReferralReward,
+    int? onlineWindowMinutes,
   }) async {
     final current = state.settings;
     if (current == null) return;
@@ -40,6 +41,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
           loyaltyMaxPointsPerOrder: loyaltyMaxPointsPerOrder,
           loyaltyReferralBonus:     loyaltyReferralBonus,
           loyaltyReferralReward:    loyaltyReferralReward,
+          onlineWindowMinutes:      onlineWindowMinutes,
         ),
       );
       emit(state.copyWith(status: AppSettingsStatus.loaded, settings: updated));

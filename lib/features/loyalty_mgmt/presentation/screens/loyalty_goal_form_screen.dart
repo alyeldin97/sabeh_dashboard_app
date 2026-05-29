@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -114,6 +115,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocBuilder<LoyaltyCubit, LoyaltyState>(
       builder: (context, state) {
         final saving = state.actionStatus == LoyaltyMgmtStatus.loading;
@@ -123,7 +125,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
             backgroundColor: AppColors.primaryDeep,
             foregroundColor: AppColors.white,
             title: Text(
-              _isEdit ? 'Edit Points Reward' : 'New Points Reward',
+              _isEdit ? l10n.loyaltyGoalFormEditTitle : l10n.loyaltyGoalFormNewTitle,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 18),
                 fontWeight: FontWeight.w700,
@@ -141,7 +143,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                             strokeWidth: 2, color: Colors.white),
                       )
                     : Text(
-                        'Save',
+                        l10n.loyaltyGoalFormSave,
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 15),
                           fontWeight: FontWeight.w700,
@@ -157,7 +159,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
             child: ListView(
               padding: EdgeInsets.all(20.r),
               children: [
-                _FieldLabel('Icon (emoji)'),
+                _FieldLabel(l10n.loyaltyGoalFormIcon),
                 SizedBox(height: 8.h),
                 _buildTextField(
                   controller: _iconCtrl,
@@ -165,17 +167,17 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                   icon: Icons.emoji_emotions_outlined,
                 ),
                 SizedBox(height: 20.h),
-                _FieldLabel('Title'),
+                _FieldLabel(l10n.loyaltyGoalFormTitle),
                 SizedBox(height: 8.h),
                 _buildTextField(
                   controller: _titleCtrl,
                   hint: 'e.g. Free Delivery',
                   icon: Icons.title_rounded,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Title is required' : null,
+                      (v == null || v.trim().isEmpty) ? l10n.loyaltyGoalFormTitleRequired : null,
                 ),
                 SizedBox(height: 20.h),
-                _FieldLabel('Points Required'),
+                _FieldLabel(l10n.loyaltyGoalFormPointsRequired),
                 SizedBox(height: 8.h),
                 _buildTextField(
                   controller: _pointsCtrl,
@@ -184,23 +186,23 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                   keyboardType: TextInputType.number,
                   validator: (v) {
                     final d = int.tryParse(v ?? '');
-                    if (d == null || d <= 0) return 'Enter points greater than 0';
+                    if (d == null || d <= 0) return l10n.loyaltyGoalFormPointsInvalid;
                     return null;
                   },
                 ),
                 SizedBox(height: 20.h),
-                _FieldLabel('Reward Type'),
+                _FieldLabel(l10n.loyaltyGoalFormRewardType),
                 SizedBox(height: 8.h),
-                _buildRewardDropdown(),
+                _buildRewardDropdown(l10n),
                 SizedBox(height: 16.h),
 
                 if (_rewardType == 'free_product') ...[
-                  _FieldLabel('Free Product'),
+                  _FieldLabel(l10n.loyaltyGoalFormSelectProduct),
                   SizedBox(height: 8.h),
                   EntityPickerField(
                     icon: Icons.inventory_2_outlined,
-                    placeholder: 'Tap to choose a product',
-                    sheetTitle: 'Select Free Product',
+                    placeholder: l10n.loyaltyGoalFormTapProduct,
+                    sheetTitle: l10n.loyaltyGoalFormSelectProduct,
                     fetchItems: _fetchProducts,
                     selectedId: _selectedProductId,
                     selectedName: _selectedProductName,
@@ -213,7 +215,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                   SizedBox(height: 20.h),
                 ],
 
-                _FieldLabel('Description — optional'),
+                _FieldLabel(l10n.loyaltyGoalFormDescription),
                 SizedBox(height: 8.h),
                 _buildTextField(
                   controller: _descCtrl,
@@ -222,7 +224,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                   maxLines: 3,
                 ),
                 SizedBox(height: 20.h),
-                _FieldLabel('Sort Order'),
+                _FieldLabel(l10n.loyaltyGoalFormSortOrder),
                 SizedBox(height: 8.h),
                 _buildTextField(
                   controller: _sortCtrl,
@@ -231,7 +233,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                   keyboardType: TextInputType.number,
                   validator: (v) {
                     final d = int.tryParse(v ?? '');
-                    if (d == null || d < 0) return 'Enter 0 or more';
+                    if (d == null || d < 0) return l10n.loyaltyGoalFormSortInvalid;
                     return null;
                   },
                 ),
@@ -250,7 +252,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Active',
+                          l10n.loyaltyGoalFormActive,
                           style: GoogleFonts.nunito(
                             fontSize: Responsive.sp(context, 14),
                             color: AppColors.textDark,
@@ -272,7 +274,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
                     icon: Icon(Icons.delete_outline_rounded,
                         size: 18.r, color: AppColors.error),
                     label: Text(
-                      'Delete Reward',
+                      l10n.loyaltyGoalFormDelete,
                       style: GoogleFonts.nunito(
                         fontSize: Responsive.sp(context, 14),
                         color: AppColors.error,
@@ -298,10 +300,11 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
   }
 
   void _confirmDelete(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Delete Reward?',
+        title: Text(l10n.loyaltyGoalFormDeleteTitle,
             style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         content: Text(
           'This will permanently delete "${widget.goal!.title}".',
@@ -310,7 +313,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.loyaltyGoalFormCancel),
           ),
           TextButton(
             onPressed: () async {
@@ -320,7 +323,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
               await cubit.deleteGoal(widget.goal!.id);
               if (mounted) nav.pop();
             },
-            child: Text('Delete',
+            child: Text(l10n.loyaltyGoalFormDeleteConfirm,
                 style: GoogleFonts.nunito(
                     color: AppColors.error, fontWeight: FontWeight.w700)),
           ),
@@ -329,7 +332,7 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
     );
   }
 
-  Widget _buildRewardDropdown() {
+  Widget _buildRewardDropdown(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
@@ -343,9 +346,9 @@ class _LoyaltyGoalFormScreenState extends State<LoyaltyGoalFormScreen> {
           isExpanded: true,
           style: GoogleFonts.nunito(
               fontSize: Responsive.sp(context, 14), color: AppColors.textDark),
-          items: const [
-            DropdownMenuItem(value: 'free_delivery', child: Text('Free Delivery')),
-            DropdownMenuItem(value: 'free_product',  child: Text('Free Product')),
+          items: [
+            DropdownMenuItem(value: 'free_delivery', child: Text(l10n.loyaltyGoalFormFreeDelivery)),
+            DropdownMenuItem(value: 'free_product',  child: Text(l10n.loyaltyGoalFormFreeProduct)),
           ],
           onChanged: (v) {
             if (v != null) {

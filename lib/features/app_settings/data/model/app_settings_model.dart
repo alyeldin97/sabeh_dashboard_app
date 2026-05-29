@@ -7,6 +7,7 @@ class AppSettingsModel extends Equatable {
   final int loyaltyMaxPointsPerOrder;
   final int loyaltyReferralBonus;
   final int loyaltyReferralReward;
+  final int onlineWindowMinutes;
 
   const AppSettingsModel({
     required this.id,
@@ -15,6 +16,7 @@ class AppSettingsModel extends Equatable {
     this.loyaltyMaxPointsPerOrder = 0,
     this.loyaltyReferralBonus = 50,
     this.loyaltyReferralReward = 50,
+    this.onlineWindowMinutes = 3,
   });
 
   factory AppSettingsModel.fromJson(Map<String, dynamic> j) => AppSettingsModel(
@@ -24,6 +26,7 @@ class AppSettingsModel extends Equatable {
         loyaltyMaxPointsPerOrder: (j['loyalty_max_points_per_order'] as int?) ?? 0,
         loyaltyReferralBonus:     (j['loyalty_referral_bonus'] as int?) ?? 50,
         loyaltyReferralReward:    (j['loyalty_referral_reward'] as int?) ?? 50,
+        onlineWindowMinutes:      (j['online_window_minutes'] as int?) ?? 3,
       );
 
   AppSettingsModel copyWith({
@@ -32,6 +35,7 @@ class AppSettingsModel extends Equatable {
     int? loyaltyMaxPointsPerOrder,
     int? loyaltyReferralBonus,
     int? loyaltyReferralReward,
+    int? onlineWindowMinutes,
   }) =>
       AppSettingsModel(
         id:                       id,
@@ -40,8 +44,9 @@ class AppSettingsModel extends Equatable {
         loyaltyMaxPointsPerOrder: loyaltyMaxPointsPerOrder ?? this.loyaltyMaxPointsPerOrder,
         loyaltyReferralBonus:     loyaltyReferralBonus ?? this.loyaltyReferralBonus,
         loyaltyReferralReward:    loyaltyReferralReward ?? this.loyaltyReferralReward,
+        onlineWindowMinutes:      onlineWindowMinutes ?? this.onlineWindowMinutes,
       );
 
   @override
-  List<Object?> get props => [id, serviceFeeValue, serviceFeeEnabled, loyaltyMaxPointsPerOrder, loyaltyReferralBonus, loyaltyReferralReward];
+  List<Object?> get props => [id, serviceFeeValue, serviceFeeEnabled, loyaltyMaxPointsPerOrder, loyaltyReferralBonus, loyaltyReferralReward, onlineWindowMinutes];
 }

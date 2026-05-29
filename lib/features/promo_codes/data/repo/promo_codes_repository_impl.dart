@@ -20,18 +20,20 @@ class PromoCodesRepositoryImpl implements PromoCodesRepository {
     DateTime? startsAt,
     String? description,
     required int maxUsesPerUser,
+    int? cashbackExpiryDays,
   }) =>
       _dataSource.create(data: {
-        'code':              code.toUpperCase(),
-        'discount_type':     type.value,
-        'discount_value':    discountValue,
-        'min_order':         minOrder,
-        'max_uses':          maxUses,
-        'expires_at':        expiresAt?.toIso8601String(),
-        'starts_at':         startsAt?.toIso8601String(),
-        'is_active':         true,
-        'description':       description,
-        'max_uses_per_user': maxUsesPerUser,
+        'code':                 code.toUpperCase(),
+        'discount_type':        type.value,
+        'discount_value':       discountValue,
+        'min_order':            minOrder,
+        'max_uses':             maxUses,
+        'expires_at':           expiresAt?.toIso8601String(),
+        'starts_at':            startsAt?.toIso8601String(),
+        'is_active':            true,
+        'description':          description,
+        'max_uses_per_user':    maxUsesPerUser,
+        'cashback_expiry_days': cashbackExpiryDays,
       });
 
   @override
@@ -47,18 +49,20 @@ class PromoCodesRepositoryImpl implements PromoCodesRepository {
     required bool isActive,
     String? description,
     required int maxUsesPerUser,
+    int? cashbackExpiryDays,
   }) =>
       _dataSource.update(id: id, data: {
-        'code':              code.toUpperCase(),
-        'discount_type':     type.value,
-        'discount_value':    discountValue,
-        'min_order':         minOrder,
-        'max_uses':          maxUses,
-        'expires_at':        expiresAt?.toIso8601String(),
-        'starts_at':         startsAt?.toIso8601String(),
-        'is_active':         isActive,
-        'description':       description,
-        'max_uses_per_user': maxUsesPerUser,
+        'code':                 code.toUpperCase(),
+        'discount_type':        type.value,
+        'discount_value':       discountValue,
+        'min_order':            minOrder,
+        'max_uses':             maxUses,
+        'expires_at':           expiresAt?.toIso8601String(),
+        'starts_at':            startsAt?.toIso8601String(),
+        'is_active':            isActive,
+        'description':          description,
+        'max_uses_per_user':    maxUsesPerUser,
+        'cashback_expiry_days': cashbackExpiryDays,
       });
 
   @override

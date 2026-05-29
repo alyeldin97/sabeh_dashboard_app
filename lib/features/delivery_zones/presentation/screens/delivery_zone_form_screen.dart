@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../data/model/delivery_zone_model.dart';
 import '../cubits/delivery_zones_cubit.dart';
 
@@ -21,9 +23,12 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _nameArCtrl;
   late final TextEditingController _feeCtrl;
+  late final TextEditingController _actualCostCtrl;
   late final TextEditingController _minOrderCtrl;
   late final TextEditingController _minRiderCtrl;
   bool _isActive = true;
+  String? _selectedBranchId;
+  List<Map<String, String>> _branches = [];
 
   bool get _isEdit => widget.zone != null;
 
@@ -31,12 +36,33 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
   void initState() {
     super.initState();
     final z = widget.zone;
-    _nameCtrl     = TextEditingController(text: z?.name ?? '');
-    _nameArCtrl   = TextEditingController(text: z?.nameAr ?? '');
-    _feeCtrl      = TextEditingController(text: z != null ? z.deliveryFee.toStringAsFixed(0) : '0');
-    _minOrderCtrl = TextEditingController(text: z != null ? z.minOrderValue.toStringAsFixed(0) : '0');
-    _minRiderCtrl = TextEditingController(text: z != null ? z.minRiderQuantity.toString() : '0');
-    _isActive     = z?.isActive ?? true;
+    _nameCtrl       = TextEditingController(text: z?.name ?? '');
+    _nameArCtrl     = TextEditingController(text: z?.nameAr ?? '');
+    _feeCtrl        = TextEditingController(text: z != null ? z.userPaidDeliveryFees.toStringAsFixed(0) : '0');
+    _actualCostCtrl = TextEditingController(text: z != null && z.deliveryFeesPaidToDriver > 0 ? z.deliveryFeesPaidToDriver.toStringAsFixed(0) : '0');
+    _minOrderCtrl   = TextEditingController(text: z != null ? z.minOrderValue.toStringAsFixed(0) : '0');
+    _minRiderCtrl   = TextEditingController(text: z != null ? z.minRiderQuantity.toString() : '0');
+    _isActive         = z?.isActive ?? true;
+    _selectedBranchId = null; // set after branches load to avoid DropdownButton assertion
+    _loadBranches();
+  }
+
+  Future<void> _loadBranches() async {
+    try {
+      final rows = await Supabase.instance.client
+          .from('branches')
+          .select('id, name')
+          .order('name') as List<dynamic>;
+      if (mounted) {
+        setState(() {
+          _branches = rows.map((r) => {
+            'id': r['id'] as String,
+            'name': r['name'] as String,
+          }).toList();
+          _selectedBranchId = widget.zone?.branchId; // safe now — items exist
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -44,6 +70,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
     _nameCtrl.dispose();
     _nameArCtrl.dispose();
     _feeCtrl.dispose();
+    _actualCostCtrl.dispose();
     _minOrderCtrl.dispose();
     _minRiderCtrl.dispose();
     super.dispose();
@@ -52,11 +79,12 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final cubit = context.read<DeliveryZonesCubit>();
-    final name           = _nameCtrl.text.trim();
-    final nameAr         = _nameArCtrl.text.trim().isEmpty ? null : _nameArCtrl.text.trim();
-    final deliveryFee    = double.parse(_feeCtrl.text.trim());
-    final minOrder       = double.parse(_minOrderCtrl.text.trim());
-    final minRider       = int.parse(_minRiderCtrl.text.trim());
+    final name              = _nameCtrl.text.trim();
+    final nameAr            = _nameArCtrl.text.trim().isEmpty ? null : _nameArCtrl.text.trim();
+    final userPaidDeliveryFees       = double.parse(_feeCtrl.text.trim());
+    final deliveryFeesPaidToDriver   = double.tryParse(_actualCostCtrl.text.trim()) ?? 0;
+    final minOrder          = double.parse(_minOrderCtrl.text.trim());
+    final minRider          = int.parse(_minRiderCtrl.text.trim());
 
     bool ok;
     if (_isEdit) {
@@ -64,18 +92,22 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
         id: widget.zone!.id,
         name: name,
         nameAr: nameAr,
-        deliveryFee: deliveryFee,
+        userPaidDeliveryFees: userPaidDeliveryFees,
+        deliveryFeesPaidToDriver: deliveryFeesPaidToDriver,
         minOrderValue: minOrder,
         minRiderQuantity: minRider,
         isActive: _isActive,
+        branchId: _selectedBranchId,
       );
     } else {
       ok = await cubit.create(
         name: name,
         nameAr: nameAr,
-        deliveryFee: deliveryFee,
+        userPaidDeliveryFees: userPaidDeliveryFees,
+        deliveryFeesPaidToDriver: deliveryFeesPaidToDriver,
         minOrderValue: minOrder,
         minRiderQuantity: minRider,
+        branchId: _selectedBranchId,
       );
     }
 
@@ -93,7 +125,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
             backgroundColor: AppColors.primaryDeep,
             foregroundColor: AppColors.white,
             title: Text(
-              _isEdit ? 'Edit Zone' : 'New Zone',
+              _isEdit ? AppLocalizations.of(context)!.zoneFormEditTitle : AppLocalizations.of(context)!.zoneFormNewTitle,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 18),
                 fontWeight: FontWeight.w700,
@@ -109,7 +141,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
                         height: 18.r,
                         child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : Text('Save',
+                    : Text(AppLocalizations.of(context)!.zoneFormSave,
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 15),
                           fontWeight: FontWeight.w700,
@@ -124,18 +156,18 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
             child: ListView(
               padding: EdgeInsets.all(20.r),
               children: [
-                _FieldLabel('Zone Name (English)'),
+                _FieldLabel(AppLocalizations.of(context)!.zoneFormNameEn),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _nameCtrl,
                   hint: 'e.g. Maadi',
                   icon: Icons.location_on_outlined,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                      (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.zoneFormNameRequired : null,
                 ),
                 SizedBox(height: 20.h),
 
-                _FieldLabel('Zone Name (Arabic) — optional'),
+                _FieldLabel(AppLocalizations.of(context)!.zoneFormNameAr),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _nameArCtrl,
@@ -144,7 +176,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
                 ),
                 SizedBox(height: 20.h),
 
-                _FieldLabel('Delivery Fee (EGP)'),
+                _FieldLabel(AppLocalizations.of(context)!.zoneFormDeliveryFee),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _feeCtrl,
@@ -153,13 +185,62 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   validator: (v) {
                     final d = double.tryParse(v ?? '');
-                    if (d == null || d < 0) return 'Enter a valid fee (0 or more)';
+                    if (d == null || d < 0) return AppLocalizations.of(context)!.zoneFormFeeInvalid;
                     return null;
                   },
                 ),
                 SizedBox(height: 20.h),
 
-                _FieldLabel('Minimum Order Value (EGP)'),
+                _FieldLabel('تكلفة التوصيل الفعلية (Actual Delivery Cost)'),
+                SizedBox(height: 4.h),
+                Text(
+                  'Not visible to customers — used in driver cost calculations',
+                  style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 11), color: AppColors.textLight),
+                ),
+                SizedBox(height: 8.h),
+                _buildField(
+                  controller: _actualCostCtrl,
+                  hint: '0',
+                  icon: Icons.price_check_outlined,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                ),
+                SizedBox(height: 20.h),
+
+                _FieldLabel('الفرع المسؤول (Branch)'),
+                SizedBox(height: 8.h),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: AppBorderRadius.r12,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: _selectedBranchId,
+                      isExpanded: true,
+                      hint: Text(
+                        'No branch linked',
+                        style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), color: AppColors.textLight),
+                      ),
+                      style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), color: AppColors.textDark),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('No branch', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), color: AppColors.textLight)),
+                        ),
+                        ..._branches.map((b) => DropdownMenuItem<String?>(
+                          value: b['id'],
+                          child: Text(b['name']!, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13))),
+                        )),
+                      ],
+                      onChanged: (v) => setState(() => _selectedBranchId = v),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+
+                _FieldLabel(AppLocalizations.of(context)!.zoneFormMinOrder),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _minOrderCtrl,
@@ -168,19 +249,19 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   validator: (v) {
                     final d = double.tryParse(v ?? '');
-                    if (d == null || d < 0) return 'Enter 0 or more';
+                    if (d == null || d < 0) return AppLocalizations.of(context)!.zoneFormMinInvalid;
                     return null;
                   },
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  'Set to 0 to disable minimum order requirement.',
+                  AppLocalizations.of(context)!.zoneFormMinOrderHint,
                   style: GoogleFonts.nunito(
                       fontSize: Responsive.sp(context, 11), color: AppColors.textLight),
                 ),
                 SizedBox(height: 20.h),
 
-                _FieldLabel('Minimum Items (Rider Quantity)'),
+                _FieldLabel(AppLocalizations.of(context)!.zoneFormMinItems),
                 SizedBox(height: 8.h),
                 _buildField(
                   controller: _minRiderCtrl,
@@ -189,13 +270,13 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
                   keyboardType: TextInputType.number,
                   validator: (v) {
                     final d = int.tryParse(v ?? '');
-                    if (d == null || d < 0) return 'Enter 0 or more';
+                    if (d == null || d < 0) return AppLocalizations.of(context)!.zoneFormMinInvalid;
                     return null;
                   },
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  'Minimum total number of items the customer must order. Set to 0 to disable.',
+                  AppLocalizations.of(context)!.zoneFormMinItemsHint,
                   style: GoogleFonts.nunito(
                       fontSize: Responsive.sp(context, 11), color: AppColors.textLight),
                 ),
@@ -214,7 +295,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
                         Icon(Icons.toggle_on_outlined, size: 20.r, color: AppColors.textLight),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text('Active',
+                          child: Text(AppLocalizations.of(context)!.zoneFormActive,
                               style: GoogleFonts.nunito(
                                 fontSize: Responsive.sp(context, 14),
                                 color: AppColors.textDark,
@@ -232,7 +313,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
                   OutlinedButton.icon(
                     onPressed: saving ? null : () => _confirmDelete(context),
                     icon: Icon(Icons.delete_outline_rounded, size: 18.r, color: AppColors.error),
-                    label: Text('Delete Zone',
+                    label: Text(AppLocalizations.of(context)!.zoneFormDelete,
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 14),
                           color: AppColors.error,
@@ -258,7 +339,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Delete Zone?',
+        title: Text(AppLocalizations.of(context)!.zoneFormDeleteTitle,
             style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         content: Text(
             'This will permanently delete "${widget.zone!.name}". Existing addresses in this zone will lose their zone reference.',
@@ -266,7 +347,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.zoneFormCancel),
           ),
           TextButton(
             onPressed: () async {
@@ -276,7 +357,7 @@ class _DeliveryZoneFormScreenState extends State<DeliveryZoneFormScreen> {
               final ok = await cubit.delete(widget.zone!.id);
               if (ok && mounted) nav.pop();
             },
-            child: Text('Delete',
+            child: Text(AppLocalizations.of(context)!.zoneFormDeleteConfirm,
                 style: GoogleFonts.nunito(
                     color: AppColors.error, fontWeight: FontWeight.w700)),
           ),

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../data/model/promo_code_model.dart';
 import '../cubits/promo_codes_cubit.dart';
 import 'promo_code_form_screen.dart';
@@ -29,12 +30,14 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
-        title: Text('Promo Codes',
+        automaticallyImplyLeading: false,
+        title: Text(l10n.promoCodesTitle,
             style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 18),
                 fontWeight: FontWeight.w700,
@@ -50,7 +53,7 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
         listener: (context, state) {
           if (state.mutationStatus == PromoMutationStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.errorMessage ?? 'Operation failed',
+              content: Text(state.errorMessage ?? l10n.promoCodes_mutationFailed,
                   style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14))),
               backgroundColor: AppColors.error,
             ));
@@ -65,12 +68,12 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.error_outline, size: 48.r, color: AppColors.error),
                 SizedBox(height: 12.h),
-                Text(state.errorMessage ?? 'Failed to load',
+                Text(state.errorMessage ?? l10n.promoCodesFailedLoad,
                     style: GoogleFonts.nunito(color: AppColors.textLight)),
                 SizedBox(height: 16.h),
                 TextButton(
                     onPressed: () => context.read<PromoCodesCubit>().load(),
-                    child: const Text('Retry')),
+                    child: Text(l10n.promoCodesRetry)),
               ]),
             );
           }
@@ -93,13 +96,13 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
                         Icon(Icons.discount_outlined, size: 64.r, color: AppColors.primaryLight),
                         SizedBox(height: 16.h),
-                        Text('No promo codes',
+                        Text(l10n.promoCodesEmpty,
                             style: GoogleFonts.nunito(
                                 fontSize: Responsive.sp(context, 18),
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textCharcoal)),
                         SizedBox(height: 8.h),
-                        Text('Tap + to create one',
+                        Text(l10n.promoCodesEmptyHint,
                             style: GoogleFonts.nunito(color: AppColors.textLight)),
                       ]),
                     )
@@ -130,21 +133,22 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
   }
 
   void _confirmDelete(BuildContext context, PromoCodeModel code) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete Promo Code',
+        title: Text(l10n.promoCodesDeleteTitle,
             style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         content: Text('Delete "${code.code}"? This cannot be undone.',
             style: GoogleFonts.nunito()),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: GoogleFonts.nunito())),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.promoCodesCancel, style: GoogleFonts.nunito())),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<PromoCodesCubit>().delete(id: code.id);
             },
-            child: Text('Delete',
+            child: Text(l10n.promoCodesDelete,
                 style: GoogleFonts.nunito(color: AppColors.error, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -162,11 +166,12 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final items = [
-      (_Filter.all, 'All'),
-      (_Filter.active, 'Active'),
-      (_Filter.expired, 'Expired'),
-      (_Filter.inactive, 'Inactive'),
+      (_Filter.all, l10n.promoCodesFilterAll),
+      (_Filter.active, l10n.promoCodesFilterActive),
+      (_Filter.expired, l10n.promoCodesFilterExpired),
+      (_Filter.inactive, l10n.promoCodesFilterInactive),
     ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -218,6 +223,7 @@ class _PromoCard extends StatelessWidget {
       case PromoType.percentage:   return const Color(0xFF1565C0);
       case PromoType.fixed:        return const Color(0xFFE65100);
       case PromoType.bogo:         return const Color(0xFF6A1B9A);
+      case PromoType.cashback:     return const Color(0xFF00838F);
     }
   }
 
@@ -227,6 +233,7 @@ class _PromoCard extends StatelessWidget {
       case PromoType.fixed:        return 'EGP ${code.discountValue.toStringAsFixed(0)} off';
       case PromoType.freeDelivery: return 'Free Delivery';
       case PromoType.bogo:         return 'BOGO';
+      case PromoType.cashback:     return '${code.discountValue.toStringAsFixed(0)} pts';
     }
   }
 
@@ -254,10 +261,11 @@ class _PromoCard extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
+                final l10n = AppLocalizations.of(context)!;
                 Clipboard.setData(ClipboardData(text: code.code));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Copied ${code.code}',
+                    content: Text(l10n.promoCodesCopied(code.code),
                         style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13))),
                     duration: const Duration(seconds: 1),
                   ),

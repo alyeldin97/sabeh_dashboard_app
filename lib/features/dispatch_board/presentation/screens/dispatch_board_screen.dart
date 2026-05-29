@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../auth/data/model/staff_user.dart';
 import '../../../orders/data/model/order_model.dart';
 import '../../../staff_mgmt/data/model/staff_member.dart';
@@ -13,8 +15,13 @@ import '../cubits/dispatch_board_cubit.dart';
 import '../cubits/dispatch_board_state.dart';
 import '../widgets/kanban_column.dart';
 import '../widgets/order_dispatch_card.dart';
-import 'daily_report_screen.dart';
-import 'driver_report_screen.dart';
+import 'reports_screen.dart';
+
+class _BranchItem {
+  final String id;
+  final String name;
+  const _BranchItem({required this.id, required this.name});
+}
 
 class DispatchBoardScreen extends StatelessWidget {
   const DispatchBoardScreen({super.key, this.branchId});
@@ -51,12 +58,42 @@ class _DispatchBoardViewState extends State<_DispatchBoardView>
   late final TabController _tabCtrl;
   final _searchCtrl = TextEditingController();
 
+  List<_BranchItem> _branches = [];
+  String? _selectedBranchId;
+
+  String? get _effectiveBranchId => widget.branchId ?? _selectedBranchId;
+
   static const _statuses = OrderStatus.values;
 
   @override
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: _statuses.length, vsync: this);
+    if (widget.branchId == null) _loadBranches();
+  }
+
+  Future<void> _loadBranches() async {
+    try {
+      final rows = await Supabase.instance.client
+          .from('branches')
+          .select('id, name')
+          .order('name');
+      if (mounted) {
+        setState(() {
+          _branches = (rows as List)
+              .map((r) => _BranchItem(id: r['id'] as String, name: r['name'] as String))
+              .toList();
+        });
+      }
+    } catch (_) {}
+  }
+
+  void _onBranchChanged(BuildContext ctx, String? id) {
+    setState(() => _selectedBranchId = id);
+    final effectiveId = widget.branchId ?? id;
+    final cubit = ctx.read<DispatchBoardCubit>();
+    cubit.load(branchId: effectiveId);
+    cubit.startWatching(branchId: effectiveId);
   }
 
   @override
@@ -75,9 +112,12 @@ class _DispatchBoardViewState extends State<_DispatchBoardView>
       body: Column(
         children: [
           _BoardTopBar(
-            branchId: widget.branchId,
-            searchCtrl: _searchCtrl,
-            isWeb: isWeb,
+            effectiveBranchId: _effectiveBranchId,
+            branches:          _branches,
+            selectedBranchId:  _selectedBranchId,
+            onBranchChanged:   (ctx, id) => _onBranchChanged(ctx, id),
+            searchCtrl:        _searchCtrl,
+            isWeb:             isWeb,
           ),
           if (!isWeb)
             BlocBuilder<DispatchBoardCubit, DispatchBoardState>(
@@ -88,49 +128,52 @@ class _DispatchBoardViewState extends State<_DispatchBoardView>
               ),
             ),
           Expanded(
-            child: BlocBuilder<DispatchBoardCubit, DispatchBoardState>(
-              builder: (ctx, state) {
-                if (state.status == DispatchBoardStatus.loading &&
-                    state.columns.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state.status == DispatchBoardStatus.failure) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.error_outline, color: Colors.red, size: 36),
-                        const SizedBox(height: 8),
-                        Text(state.errorMessage ?? 'Failed to load orders',
-                            style: GoogleFonts.nunito()),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () => ctx
-                              .read<DispatchBoardCubit>()
-                              .load(branchId: widget.branchId),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+            child: BlocBuilder<StaffCubit, StaffState>(
+              buildWhen: (prev, curr) => prev.members != curr.members,
+              builder: (_, __) => BlocBuilder<DispatchBoardCubit, DispatchBoardState>(
+                builder: (ctx, state) {
+                  if (state.status == DispatchBoardStatus.loading &&
+                      state.columns.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (state.status == DispatchBoardStatus.failure) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red, size: 36),
+                          const SizedBox(height: 8),
+                          Text(state.errorMessage ?? AppLocalizations.of(ctx)!.dispatchFailedLoad,
+                              style: GoogleFonts.nunito()),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () => ctx
+                                .read<DispatchBoardCubit>()
+                                .load(branchId: _effectiveBranchId),
+                            child: Text(AppLocalizations.of(ctx)!.dispatchRetry),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
-                final drivers = _deliveryDrivers(ctx);
+                  final drivers = _deliveryDrivers(ctx);
 
-                if (isWeb) {
-                  return _WebBoard(
+                  if (isWeb) {
+                    return _WebBoard(
+                      state:    state,
+                      drivers:  drivers,
+                      branchId: _effectiveBranchId,
+                    );
+                  }
+                  return _MobileBoard(
+                    tabCtrl:  _tabCtrl,
                     state:    state,
                     drivers:  drivers,
-                    branchId: widget.branchId,
+                    branchId: _effectiveBranchId,
                   );
-                }
-                return _MobileBoard(
-                  tabCtrl:  _tabCtrl,
-                  state:    state,
-                  drivers:  drivers,
-                  branchId: widget.branchId,
-                );
-              },
+                },
+              ),
             ),
           ),
         ],
@@ -152,11 +195,17 @@ class _DispatchBoardViewState extends State<_DispatchBoardView>
 
 class _BoardTopBar extends StatelessWidget {
   const _BoardTopBar({
-    required this.branchId,
+    required this.effectiveBranchId,
+    required this.branches,
+    required this.selectedBranchId,
+    required this.onBranchChanged,
     required this.searchCtrl,
     required this.isWeb,
   });
-  final String? branchId;
+  final String? effectiveBranchId;
+  final List<_BranchItem> branches;
+  final String? selectedBranchId;
+  final void Function(BuildContext ctx, String? id) onBranchChanged;
   final TextEditingController searchCtrl;
   final bool isWeb;
 
@@ -165,6 +214,7 @@ class _BoardTopBar extends StatelessWidget {
     return BlocBuilder<DispatchBoardCubit, DispatchBoardState>(
       builder: (ctx, state) {
         final cubit = ctx.read<DispatchBoardCubit>();
+        final l10n = AppLocalizations.of(context)!;
         return Container(
           color: AppColors.primaryDeep,
           padding: EdgeInsets.fromLTRB(
@@ -180,44 +230,51 @@ class _BoardTopBar extends StatelessWidget {
                   const Icon(Icons.view_kanban_rounded, color: Colors.white, size: 22),
                   const SizedBox(width: 10),
                   Text(
-                    'Dispatch Board',
+                    l10n.dispatchTitle,
                     style: GoogleFonts.nunito(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const Spacer(),
-                  // Report buttons
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
                   _TopBtn(
-                    icon: Icons.person_outlined,
-                    label: 'Driver',
+                    icon: Icons.assessment_outlined,
+                    label: l10n.dispatchReports,
                     onTap: () => Navigator.push(
                       ctx,
                       MaterialPageRoute(
-                        builder: (_) => DriverReportScreen(
+                        builder: (_) => ReportsScreen(
+                          branchId:    effectiveBranchId,
                           initialDate: state.viewDate,
-                          branchId:    branchId,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _TopBtn(
-                    icon: Icons.bar_chart_rounded,
-                    label: 'Daily',
-                    onTap: () => Navigator.push(
-                      ctx,
-                      MaterialPageRoute(
-                        builder: (_) => DailyReportScreen(
-                          initialDate: state.viewDate,
-                          branchId:    branchId,
                         ),
                       ),
                     ),
                   ),
                 ],
               ),
+              // Branch filter chips — only shown when not branch-scoped
+              if (branches.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 32,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _branchChip(ctx, 'الكل · All', selectedBranchId == null, null),
+                        ...branches.map((b) =>
+                            _branchChip(ctx, b.name, selectedBranchId == b.id, b.id)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 10),
               // Date navigation
               Row(
@@ -227,7 +284,7 @@ class _BoardTopBar extends StatelessWidget {
                     icon: const Icon(Icons.chevron_left_rounded,
                         color: Colors.white70, size: 26),
                     onPressed: () =>
-                        cubit.previousDay(branchId: branchId),
+                        cubit.previousDay(branchId: effectiveBranchId),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -242,7 +299,7 @@ class _BoardTopBar extends StatelessWidget {
                         lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (picked != null) {
-                        cubitRef.goToDate(picked, branchId: branchId);
+                        cubitRef.goToDate(picked, branchId: effectiveBranchId);
                       }
                     },
                     child: Container(
@@ -279,7 +336,7 @@ class _BoardTopBar extends StatelessWidget {
                     icon: const Icon(Icons.chevron_right_rounded,
                         color: Colors.white70, size: 26),
                     onPressed: () =>
-                        cubit.nextDay(branchId: branchId),
+                        cubit.nextDay(branchId: effectiveBranchId),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -287,7 +344,7 @@ class _BoardTopBar extends StatelessWidget {
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () =>
-                          cubit.goToToday(branchId: branchId),
+                          cubit.goToToday(branchId: effectiveBranchId),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
@@ -296,7 +353,7 @@ class _BoardTopBar extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Today',
+                          l10n.dispatchToday,
                           style: GoogleFonts.nunito(
                               fontSize: 12,
                               color: Colors.white,
@@ -321,7 +378,7 @@ class _BoardTopBar extends StatelessWidget {
                         style: GoogleFonts.nunito(
                             fontSize: 13, color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Search orders…',
+                          hintText: l10n.dispatchSearchHint,
                           hintStyle: GoogleFonts.nunito(
                               color: Colors.white38, fontSize: 13),
                           prefixIcon: const Icon(Icons.search_rounded,
@@ -382,6 +439,33 @@ class _BoardTopBar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _branchChip(BuildContext ctx, String label, bool selected, String? id) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: GestureDetector(
+        onTap: () => onBranchChanged(ctx, id),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(
+            color: selected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? AppColors.primaryDeep : Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

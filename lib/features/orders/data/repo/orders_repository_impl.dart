@@ -1,3 +1,4 @@
+import '../model/order_history_model.dart';
 import '../model/order_model.dart';
 import '../remote/orders_data_source.dart';
 import 'orders_repository.dart';
@@ -15,6 +16,10 @@ class OrdersRepositoryImpl implements OrdersRepository {
       _ds.getOrdersByDate(date: date, branchId: branchId);
 
   @override
+  Future<List<OrderModel>> getOrdersByDateRange({required DateTime from, required DateTime to, String? branchId}) =>
+      _ds.getOrdersByDateRange(from: from, to: to, branchId: branchId);
+
+  @override
   Future<OrderModel> getOrder({required String orderId}) =>
       _ds.getOrder(orderId: orderId);
 
@@ -30,11 +35,79 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }) => _ds.updateOrderDriver(orderId: orderId, driverId: driverId, driverName: driverName);
 
   @override
+  Future<void> markOrderPaid({required String orderId, required bool isPaid, bool isCashOrder = false}) =>
+      _ds.markOrderPaid(orderId: orderId, isPaid: isPaid, isCashOrder: isCashOrder);
+
+  @override
+  Future<void> updateOrderFields({
+    required String orderId,
+    String? notes,
+    String? deliveryAddress,
+    String? paymentMethod,
+    String? customerPhone,
+    String? staffNote,
+  }) => _ds.updateOrderFields(
+        orderId: orderId,
+        notes: notes,
+        deliveryAddress: deliveryAddress,
+        paymentMethod: paymentMethod,
+        customerPhone: customerPhone,
+        staffNote: staffNote,
+      );
+
+  @override
+  Future<void> updateOrderItems({
+    required String orderId,
+    required List<Map<String, dynamic>> updatedItems,
+    required List<String> deletedItemIds,
+    required double newTotalPrice,
+  }) => _ds.updateOrderItems(
+        orderId: orderId,
+        updatedItems: updatedItems,
+        deletedItemIds: deletedItemIds,
+        newTotalPrice: newTotalPrice,
+      );
+
+  @override
+  Future<void> updateOrderDeliveryFee({
+    required String orderId,
+    required double fee,
+    required double newTotalPrice,
+  }) => _ds.updateOrderDeliveryFee(orderId: orderId, fee: fee, newTotalPrice: newTotalPrice);
+
+  @override
+  Future<void> updateOrderDeposit({required String orderId, required double deposit}) =>
+      _ds.updateOrderDeposit(orderId: orderId, deposit: deposit);
+
+  @override
+  Future<void> updateOrderMaradia({required String orderId, required double maradia}) =>
+      _ds.updateOrderMaradia(orderId: orderId, maradia: maradia);
+
+  @override
   Future<String> createOrder({
     required Map<String, dynamic> orderData,
     required List<Map<String, dynamic>> items,
   }) =>
       _ds.createOrder(orderData: orderData, items: items);
+
+  @override
+  Future<void> addOrderHistory({
+    required String orderId,
+    required String action,
+    String? actorId,
+    String? actorName,
+    String? actorRole,
+  }) => _ds.addOrderHistory(
+        orderId: orderId,
+        action: action,
+        actorId: actorId,
+        actorName: actorName,
+        actorRole: actorRole,
+      );
+
+  @override
+  Future<List<OrderHistoryModel>> getOrderHistory({required String orderId}) =>
+      _ds.getOrderHistory(orderId: orderId);
 
   @override
   Stream<void> watchOrders({String? branchId}) => _ds.watchOrders(branchId: branchId);

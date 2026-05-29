@@ -9,6 +9,7 @@ import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
 import '../../../../core/widgets/entity_picker_field.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../data/model/banner_model.dart';
 import '../cubits/banners_cubit.dart';
 
@@ -181,13 +182,14 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
         title: Text(
-          _isEditing ? 'Edit Banner' : 'New Banner',
+          _isEditing ? l10n.bannerFormEditTitle : l10n.bannerFormNewTitle,
           style: GoogleFonts.nunito(
               fontSize: Responsive.sp(context, 18),
               fontWeight: FontWeight.w700,
@@ -204,7 +206,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
               padding: EdgeInsets.all(20.r),
               children: [
                 // Image URL
-                _Label(text: 'Image URL'),
+                _Label(text: l10n.bannerFormImageUrl),
                 SizedBox(height: 6.h),
                 TextFormField(
                   controller: _imageUrlCtrl,
@@ -217,7 +219,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                       hint: 'https://example.com/banner.jpg'),
                   validator: (v) =>
                       (v == null || v.trim().isEmpty)
-                          ? 'Image URL is required'
+                          ? l10n.bannerFormImageRequired
                           : null,
                 ),
                 if (_previewUrl.isNotEmpty) ...[
@@ -233,7 +235,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                         height: 60.h,
                         color: AppColors.primaryMist,
                         child: Center(
-                          child: Text('Invalid image URL',
+                          child: Text(l10n.bannerFormInvalidImage,
                               style: GoogleFonts.nunito(
                                   color: AppColors.textLight,
                                   fontSize: Responsive.sp(context, 12))),
@@ -252,7 +254,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                 SizedBox(height: 16.h),
 
                 // Title
-                _Label(text: 'Title (optional)'),
+                _Label(text: l10n.bannerFormTitleField),
                 SizedBox(height: 6.h),
                 TextFormField(
                   controller: _titleCtrl,
@@ -270,7 +272,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _Label(text: 'Sort Order'),
+                          _Label(text: l10n.bannerFormSortOrder),
                           SizedBox(height: 6.h),
                           TextFormField(
                             controller: _sortCtrl,
@@ -287,7 +289,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        _Label(text: 'Active'),
+                        _Label(text: l10n.bannerFormActive),
                         Switch(
                           value: _isActive,
                           onChanged: (v) => setState(() => _isActive = v),
@@ -298,7 +300,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                 SizedBox(height: 16.h),
 
                 // Action type
-                _Label(text: 'On Tap Action'),
+                _Label(text: l10n.bannerFormOnTapAction),
                 SizedBox(height: 6.h),
                 DropdownButtonFormField<BannerActionType>(
                   value: _actionType,
@@ -327,7 +329,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
 
                 // Action-specific fields
                 if (_actionType == BannerActionType.url) ...[
-                  _Label(text: 'URL to Open'),
+                  _Label(text: l10n.bannerFormUrlToOpen),
                   SizedBox(height: 6.h),
                   TextFormField(
                     controller: _actionUrlCtrl,
@@ -341,18 +343,18 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                     validator: (v) =>
                         _actionType == BannerActionType.url &&
                                 (v == null || v.trim().isEmpty)
-                            ? 'URL is required'
+                            ? l10n.bannerFormUrlRequired
                             : null,
                   ),
                   SizedBox(height: 16.h),
                 ],
                 if (_actionType == BannerActionType.product) ...[
-                  _Label(text: 'Select Product'),
+                  _Label(text: l10n.bannerFormSelectProduct),
                   SizedBox(height: 6.h),
                   EntityPickerField(
                     icon: Icons.inventory_2_outlined,
-                    placeholder: 'Tap to choose a product',
-                    sheetTitle: 'Select Product',
+                    placeholder: l10n.bannerFormTapProduct,
+                    sheetTitle: l10n.bannerFormSelectProduct,
                     fetchItems: _fetchProducts,
                     selectedId: _selectedProductId,
                     selectedName: _selectedProductName,
@@ -365,12 +367,12 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                   SizedBox(height: 16.h),
                 ],
                 if (_actionType == BannerActionType.collection) ...[
-                  _Label(text: 'Select Category'),
+                  _Label(text: l10n.bannerFormSelectCategory),
                   SizedBox(height: 6.h),
                   EntityPickerField(
                     icon: Icons.grid_view_outlined,
-                    placeholder: 'Tap to choose a category',
-                    sheetTitle: 'Select Category',
+                    placeholder: l10n.bannerFormTapCategory,
+                    sheetTitle: l10n.bannerFormSelectCategory,
                     fetchItems: _fetchCategories,
                     selectedId: _selectedCollectionId,
                     selectedName: _selectedCollectionName,
@@ -385,14 +387,14 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
 
                 // Date range
                 _DatePickerRow(
-                  label: 'Start Date (optional)',
+                  label: l10n.bannerFormStartDate,
                   date: _startDate,
                   onPick: () => _pickDate(true),
                   onClear: () => setState(() => _startDate = null),
                 ),
                 SizedBox(height: 12.h),
                 _DatePickerRow(
-                  label: 'End Date (optional)',
+                  label: l10n.bannerFormEndDate,
                   date: _endDate,
                   onPick: () => _pickDate(false),
                   onClear: () => setState(() => _endDate = null),
@@ -418,7 +420,7 @@ class _BannerFormScreenState extends State<BannerFormScreen> {
                             child: const CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white))
                         : Text(
-                            _isEditing ? 'Save Changes' : 'Create Banner',
+                            _isEditing ? l10n.bannerFormSaveChanges : l10n.bannerFormCreate,
                             style: GoogleFonts.nunito(
                                 fontSize: Responsive.sp(context, 15),
                                 fontWeight: FontWeight.w700)),

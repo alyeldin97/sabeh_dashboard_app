@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.8
   flutter_bloc: ^8.1.6
   equatable: ^2.0.5
@@ -23,13 +25,34 @@ dependencies:
   internet_connection_checker_plus: ^2.7.2
   image_picker: ^1.1.2
   intl: ^0.20.2
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.5
+  pdf: ^3.11.1
+  printing: ^5.13.2
+  flutter_local_notifications: ^18.0.1
+  csv: ^6.0.0
+  file_picker: ^8.1.6
+  share_plus: ^10.1.4
+  path_provider: ^2.1.5
+  web: ^1.1.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/icons/Sticker 2 - 6.PNG"
+  min_sdk_android: 21
+  web:
+    generate: false
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/icons/

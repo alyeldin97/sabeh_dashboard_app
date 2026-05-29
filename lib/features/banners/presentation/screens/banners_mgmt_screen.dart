@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../data/model/banner_model.dart';
 import '../cubits/banners_cubit.dart';
 import 'banner_form_screen.dart';
@@ -26,12 +27,14 @@ class _BannersMgmtScreenState extends State<BannersMgmtScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
-        title: Text('Banners',
+        automaticallyImplyLeading: false,
+        title: Text(l10n.bannersTitle,
             style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 18),
                 fontWeight: FontWeight.w700,
@@ -47,7 +50,7 @@ class _BannersMgmtScreenState extends State<BannersMgmtScreen> {
         listener: (context, state) {
           if (state.mutationStatus == BannerMutationStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.errorMessage ?? 'Operation failed',
+              content: Text(state.errorMessage ?? l10n.bannersMutationFailed,
                   style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14))),
               backgroundColor: AppColors.error,
             ));
@@ -62,12 +65,12 @@ class _BannersMgmtScreenState extends State<BannersMgmtScreen> {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.error_outline, size: 48.r, color: AppColors.error),
                 SizedBox(height: 12.h),
-                Text(state.errorMessage ?? 'Failed to load',
+                Text(state.errorMessage ?? l10n.bannersFailedLoad,
                     style: GoogleFonts.nunito(color: AppColors.textLight)),
                 SizedBox(height: 16.h),
                 TextButton(
                     onPressed: () => context.read<BannersCubit>().load(),
-                    child: const Text('Retry')),
+                    child: Text(l10n.bannersRetry)),
               ]),
             );
           }
@@ -76,13 +79,13 @@ class _BannersMgmtScreenState extends State<BannersMgmtScreen> {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.image_outlined, size: 64.r, color: AppColors.primaryLight),
                 SizedBox(height: 16.h),
-                Text('No banners yet',
+                Text(l10n.bannersEmpty,
                     style: GoogleFonts.nunito(
                         fontSize: Responsive.sp(context, 18),
                         fontWeight: FontWeight.w700,
                         color: AppColors.textCharcoal)),
                 SizedBox(height: 8.h),
-                Text('Tap + to add the first banner',
+                Text(l10n.bannersEmptyHint,
                     style: GoogleFonts.nunito(color: AppColors.textLight)),
               ]),
             );
@@ -114,10 +117,11 @@ class _BannersMgmtScreenState extends State<BannersMgmtScreen> {
   }
 
   void _confirmDelete(BuildContext context, BannerModel banner) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete Banner',
+        title: Text(l10n.bannersDeleteTitle,
             style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         content: Text(
             'Delete "${banner.title ?? 'this banner'}"? This cannot be undone.',
@@ -125,13 +129,13 @@ class _BannersMgmtScreenState extends State<BannersMgmtScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: GoogleFonts.nunito())),
+              child: Text(l10n.bannersCancel, style: GoogleFonts.nunito())),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<BannersCubit>().delete(id: banner.id);
             },
-            child: Text('Delete',
+            child: Text(l10n.bannersDelete,
                 style: GoogleFonts.nunito(
                     color: AppColors.error, fontWeight: FontWeight.w700)),
           ),

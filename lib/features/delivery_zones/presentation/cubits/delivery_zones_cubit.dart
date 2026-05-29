@@ -22,18 +22,22 @@ class DeliveryZonesCubit extends Cubit<DeliveryZonesState> {
   Future<bool> create({
     required String name,
     String? nameAr,
-    required double deliveryFee,
+    required double userPaidDeliveryFees,
+    double deliveryFeesPaidToDriver = 0,
     required double minOrderValue,
     required int minRiderQuantity,
+    String? branchId,
   }) async {
     emit(state.copyWith(mutationStatus: ZoneMutationStatus.saving));
     try {
       final zone = await _repo.createZone(
         name: name,
         nameAr: nameAr,
-        deliveryFee: deliveryFee,
+        userPaidDeliveryFees: userPaidDeliveryFees,
+        deliveryFeesPaidToDriver: deliveryFeesPaidToDriver,
         minOrderValue: minOrderValue,
         minRiderQuantity: minRiderQuantity,
+        branchId: branchId,
       );
       emit(state.copyWith(
         zones: [zone, ...state.zones],
@@ -53,10 +57,12 @@ class DeliveryZonesCubit extends Cubit<DeliveryZonesState> {
     required String id,
     required String name,
     String? nameAr,
-    required double deliveryFee,
+    required double userPaidDeliveryFees,
+    double deliveryFeesPaidToDriver = 0,
     required double minOrderValue,
     required int minRiderQuantity,
     required bool isActive,
+    String? branchId,
   }) async {
     emit(state.copyWith(mutationStatus: ZoneMutationStatus.saving));
     try {
@@ -64,10 +70,12 @@ class DeliveryZonesCubit extends Cubit<DeliveryZonesState> {
         id: id,
         name: name,
         nameAr: nameAr,
-        deliveryFee: deliveryFee,
+        userPaidDeliveryFees: userPaidDeliveryFees,
+        deliveryFeesPaidToDriver: deliveryFeesPaidToDriver,
         minOrderValue: minOrderValue,
         minRiderQuantity: minRiderQuantity,
         isActive: isActive,
+        branchId: branchId,
       );
       final zones = state.zones.map((z) => z.id == id ? updated : z).toList();
       emit(state.copyWith(zones: zones, mutationStatus: ZoneMutationStatus.idle));
@@ -79,6 +87,14 @@ class DeliveryZonesCubit extends Cubit<DeliveryZonesState> {
       ));
       return false;
     }
+  }
+
+  Future<void> assignBranch(String zoneId, String? branchId) async {
+    await _repo.assignZoneBranch(zoneId, branchId);
+    final zones = state.zones
+        .map((z) => z.id == zoneId ? z.copyWith(branchId: branchId) : z)
+        .toList();
+    emit(state.copyWith(zones: zones));
   }
 
   Future<bool> delete(String id) async {

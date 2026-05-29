@@ -7,6 +7,7 @@ import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../categories/presentation/cubits/categories_cubit.dart';
 import '../../data/model/product.dart';
@@ -48,12 +49,14 @@ class _ProductsMgmtViewState extends State<_ProductsMgmtView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
+        automaticallyImplyLeading: false,
         title: Text(
-          'Products',
+          l10n.productsTitle,
           style: GoogleFonts.nunito(
             fontSize: Responsive.sp(context, 20),
             fontWeight: FontWeight.w700,
@@ -75,7 +78,7 @@ class _ProductsMgmtViewState extends State<_ProductsMgmtView> {
         foregroundColor: AppColors.white,
         icon: const Icon(Icons.add_rounded),
         label: Text(
-          'Add Product',
+          l10n.productsAddProduct,
           style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
         ),
         onPressed: () => _openForm(context, null),
@@ -96,7 +99,7 @@ class _ProductsMgmtViewState extends State<_ProductsMgmtView> {
       child: TextField(
         onChanged: (v) => setState(() => _search = v.toLowerCase()),
         decoration: InputDecoration(
-          hintText: 'Search products...',
+          hintText: AppLocalizations.of(context)!.productsSearchHint,
           hintStyle: GoogleFonts.nunito(
             color: AppColors.textLight,
             fontSize: Responsive.sp(context, 14),

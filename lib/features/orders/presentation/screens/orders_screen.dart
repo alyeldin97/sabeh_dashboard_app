@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
@@ -26,6 +27,9 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs;
+  final _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
   static const _statuses = [
     null,
     OrderStatus.pending,
@@ -35,8 +39,10 @@ class _OrdersScreenState extends State<OrdersScreen>
     OrderStatus.delivered,
     OrderStatus.cancelled,
   ];
-  static const _labels = [
-    'All', 'Pending', 'Confirmed', 'Preparing', 'Delivery', 'Done', 'Cancelled'
+  List<String> _labels(AppLocalizations l10n) => [
+    l10n.ordersTabAll, l10n.ordersTabPending, l10n.ordersTabConfirmed,
+    l10n.ordersTabPreparing, l10n.ordersTabDelivery, l10n.ordersTabDone,
+    l10n.ordersTabCancelled,
   ];
 
   @override
@@ -49,18 +55,21 @@ class _OrdersScreenState extends State<OrdersScreen>
   @override
   void dispose() {
     _tabs.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: Text(
-          'Orders',
+          l10n.ordersTitle,
           style: GoogleFonts.nunito(
             fontSize: Responsive.sp(context, 20),
             fontWeight: FontWeight.w700,
@@ -82,7 +91,7 @@ class _OrdersScreenState extends State<OrdersScreen>
           indicatorWeight: 2.5,
           labelStyle: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), fontWeight: FontWeight.w700),
           unselectedLabelStyle: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13)),
-          tabs: _labels.map((l) => Tab(text: l)).toList(),
+          tabs: _labels(l10n).map((l) => Tab(text: l)).toList(),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -102,7 +111,7 @@ class _OrdersScreenState extends State<OrdersScreen>
         backgroundColor: AppColors.primaryDeep,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
-          'New Order',
+          l10n.ordersNewOrder,
           style: GoogleFonts.nunito(
             fontWeight: FontWeight.w700,
             color: Colors.white,
@@ -121,29 +130,79 @@ class _OrdersScreenState extends State<OrdersScreen>
                 children: [
                   Icon(Icons.error_outline_rounded, size: 48.r, color: AppColors.textLight),
                   SizedBox(height: 12.h),
-                  Text(state.errorMessage ?? 'Failed to load orders',
+                  Text(state.errorMessage ?? l10n.ordersFailedLoad,
                       style: TextStyle(color: AppColors.textLight)),
                   SizedBox(height: 16.h),
                   ElevatedButton(
                     onPressed: () => context.read<OrdersCubit>().load(branchId: widget.branchId),
-                    child: const Text('Retry'),
+                    child: Text(l10n.ordersRetry),
                   ),
                 ],
               ),
             );
           }
 
-          return TabBarView(
-            controller: _tabs,
-            children: _statuses.map((status) {
-              final filtered = status == null
-                  ? state.orders
-                  : state.orders.where((o) => o.status == status).toList();
-              return _OrdersList(
-                orders: filtered,
-                branchId: widget.branchId,
-              );
-            }).toList(),
+          return Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
+                child: TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _searchQuery = v.trim().toLowerCase()),
+                  decoration: InputDecoration(
+                    hintText: 'Search by order # or address...',
+                    hintStyle: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), color: AppColors.textLight),
+                    prefixIcon: Icon(Icons.search_rounded, size: 20.r, color: AppColors.textLight),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.close_rounded, size: 18.r, color: AppColors.textLight),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: AppColors.white,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                    border: OutlineInputBorder(
+                      borderRadius: AppBorderRadius.r8,
+                      borderSide: BorderSide(color: AppColors.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: AppBorderRadius.r8,
+                      borderSide: BorderSide(color: AppColors.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: AppBorderRadius.r8,
+                      borderSide: BorderSide(color: AppColors.primaryDeep, width: 1.5),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabs,
+                  children: _statuses.map((status) {
+                    var orders = status == null
+                        ? state.orders
+                        : state.orders.where((o) => o.status == status).toList();
+                    if (_searchQuery.isNotEmpty) {
+                      orders = orders.where((o) {
+                        return o.orderNumber.toString().contains(_searchQuery) ||
+                            (o.deliveryAddress?.toLowerCase().contains(_searchQuery) ?? false) ||
+                            (o.customerPhone?.toLowerCase().contains(_searchQuery) ?? false) ||
+                            (o.notes?.toLowerCase().contains(_searchQuery) ?? false);
+                      }).toList();
+                    }
+                    return _OrdersList(
+                      orders: orders,
+                      branchId: widget.branchId,
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -166,7 +225,7 @@ class _OrdersList extends StatelessWidget {
             Icon(Icons.receipt_long_outlined, size: 64.r, color: AppColors.primaryLight),
             SizedBox(height: 16.h),
             Text(
-              'No orders here',
+              AppLocalizations.of(context)!.ordersEmpty,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 18),
                 fontWeight: FontWeight.w700,
@@ -226,7 +285,7 @@ class _OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Order #${order.id.substring(0, 8).toUpperCase()}',
+                          'Order #${order.orderNumber}',
                           style: GoogleFonts.nunito(
                             fontSize: Responsive.sp(context, 14),
                             fontWeight: FontWeight.w700,
@@ -288,6 +347,7 @@ class _StatusChip extends StatelessWidget {
       case OrderStatus.pending:        return const Color(0xFFFFF3E0);
       case OrderStatus.confirmed:      return const Color(0xFFE3F2FD);
       case OrderStatus.preparing:      return const Color(0xFFF3E5F5);
+      case OrderStatus.prepared:       return const Color(0xFFE0F2F1);
       case OrderStatus.outForDelivery: return const Color(0xFFE8F5E9);
       case OrderStatus.delivered:      return AppColors.primaryMist;
       case OrderStatus.cancelled:      return const Color(0xFFFFEBEE);
@@ -299,6 +359,7 @@ class _StatusChip extends StatelessWidget {
       case OrderStatus.pending:        return const Color(0xFFE65100);
       case OrderStatus.confirmed:      return const Color(0xFF1565C0);
       case OrderStatus.preparing:      return const Color(0xFF6A1B9A);
+      case OrderStatus.prepared:       return const Color(0xFF00695C);
       case OrderStatus.outForDelivery: return AppColors.primaryMid;
       case OrderStatus.delivered:      return AppColors.primaryDeep;
       case OrderStatus.cancelled:      return AppColors.error;

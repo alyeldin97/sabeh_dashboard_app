@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../data/model/delivery_zone_model.dart';
 import '../cubits/delivery_zones_cubit.dart';
 import 'delivery_zone_form_screen.dart';
@@ -39,8 +40,9 @@ class _DeliveryZonesMgmtScreenState extends State<DeliveryZonesMgmtScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
+        automaticallyImplyLeading: false,
         title: Text(
-          'Delivery Zones',
+          AppLocalizations.of(context)!.zonesTitle,
           style: GoogleFonts.nunito(
             fontSize: Responsive.sp(context, 18),
             fontWeight: FontWeight.w700,
@@ -51,7 +53,7 @@ class _DeliveryZonesMgmtScreenState extends State<DeliveryZonesMgmtScreen> {
           IconButton(
             icon: Icon(Icons.add_rounded, size: 24.r),
             onPressed: () => _openForm(context),
-            tooltip: 'Add Zone',
+            tooltip: AppLocalizations.of(context)!.zonesAddTooltip,
           ),
         ],
       ),
@@ -59,7 +61,7 @@ class _DeliveryZonesMgmtScreenState extends State<DeliveryZonesMgmtScreen> {
         listener: (context, state) {
           if (state.mutationStatus == ZoneMutationStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.errorMessage ?? 'Operation failed',
+              content: Text(state.errorMessage ?? AppLocalizations.of(context)!.zonesMutationFailed,
                   style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14))),
               backgroundColor: AppColors.error,
             ));
@@ -76,12 +78,12 @@ class _DeliveryZonesMgmtScreenState extends State<DeliveryZonesMgmtScreen> {
                 children: [
                   Icon(Icons.error_outline, size: 48.r, color: AppColors.error),
                   SizedBox(height: 12.h),
-                  Text(state.errorMessage ?? 'Failed to load zones',
+                  Text(state.errorMessage ?? AppLocalizations.of(context)!.zonesFailedLoad,
                       style: GoogleFonts.nunito(color: AppColors.textLight)),
                   SizedBox(height: 16.h),
                   TextButton(
                     onPressed: () => context.read<DeliveryZonesCubit>().load(),
-                    child: const Text('Retry'),
+                    child: Text(AppLocalizations.of(context)!.zonesRetry),
                   ),
                 ],
               ),
@@ -94,14 +96,14 @@ class _DeliveryZonesMgmtScreenState extends State<DeliveryZonesMgmtScreen> {
                 children: [
                   Icon(Icons.map_outlined, size: 64.r, color: AppColors.primaryLight),
                   SizedBox(height: 16.h),
-                  Text('No delivery zones',
+                  Text(AppLocalizations.of(context)!.zonesEmpty,
                       style: GoogleFonts.nunito(
                         fontSize: Responsive.sp(context, 18),
                         fontWeight: FontWeight.w700,
                         color: AppColors.textCharcoal,
                       )),
                   SizedBox(height: 8.h),
-                  Text('Tap + to add the first zone',
+                  Text(AppLocalizations.of(context)!.zonesEmptyHint,
                       style: GoogleFonts.nunito(color: AppColors.textLight)),
                 ],
               ),
@@ -165,21 +167,27 @@ class _ZoneCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      zone.name,
-                      style: GoogleFonts.nunito(
-                        fontSize: Responsive.sp(context, 15),
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
+                    Flexible(
+                      child: Text(
+                        zone.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.nunito(
+                          fontSize: Responsive.sp(context, 15),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
                       ),
                     ),
                     if (zone.nameAr != null) ...[
                       SizedBox(width: 6.w),
-                      Text(
-                        zone.nameAr!,
-                        style: GoogleFonts.nunito(
-                          fontSize: Responsive.sp(context, 13),
-                          color: AppColors.textLight,
+                      Flexible(
+                        child: Text(
+                          zone.nameAr!,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.nunito(
+                            fontSize: Responsive.sp(context, 13),
+                            color: AppColors.textLight,
+                          ),
                         ),
                       ),
                     ],
@@ -191,7 +199,7 @@ class _ZoneCard extends StatelessWidget {
                           color: AppColors.border,
                           borderRadius: AppBorderRadius.full,
                         ),
-                        child: Text('Inactive',
+                        child: Text(AppLocalizations.of(context)!.zonesInactive,
                             style: GoogleFonts.nunito(
                               fontSize: Responsive.sp(context, 10),
                               color: AppColors.textLight,
@@ -207,7 +215,7 @@ class _ZoneCard extends StatelessWidget {
                   children: [
                     _Chip(
                       icon: Icons.delivery_dining_outlined,
-                      label: 'EGP ${zone.deliveryFee.toStringAsFixed(0)} delivery',
+                      label: 'EGP ${zone.userPaidDeliveryFees.toStringAsFixed(0)} delivery',
                       color: AppColors.primaryDeep,
                     ),
                     if (zone.minOrderValue > 0)

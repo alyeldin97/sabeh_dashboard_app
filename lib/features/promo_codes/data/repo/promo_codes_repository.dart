@@ -12,6 +12,7 @@ abstract class PromoCodesRepository {
     DateTime? startsAt,
     String? description,
     required int maxUsesPerUser,
+    int? cashbackExpiryDays,
   });
   Future<PromoCodeModel> update({
     required String id,
@@ -25,6 +26,7 @@ abstract class PromoCodesRepository {
     required bool isActive,
     String? description,
     required int maxUsesPerUser,
+    int? cashbackExpiryDays,
   });
   Future<void> delete({required String id});
 }

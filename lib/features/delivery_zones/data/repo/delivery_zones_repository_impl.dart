@@ -13,16 +13,20 @@ class DeliveryZonesRepositoryImpl implements DeliveryZonesRepository {
   Future<DeliveryZoneModel> createZone({
     required String name,
     String? nameAr,
-    required double deliveryFee,
+    required double userPaidDeliveryFees,
+    double deliveryFeesPaidToDriver = 0,
     required double minOrderValue,
     required int minRiderQuantity,
+    String? branchId,
   }) =>
       _ds.createZone(
         name: name,
         nameAr: nameAr,
-        deliveryFee: deliveryFee,
+        userPaidDeliveryFees: userPaidDeliveryFees,
+        deliveryFeesPaidToDriver: deliveryFeesPaidToDriver,
         minOrderValue: minOrderValue,
         minRiderQuantity: minRiderQuantity,
+        branchId: branchId,
       );
 
   @override
@@ -30,21 +34,29 @@ class DeliveryZonesRepositoryImpl implements DeliveryZonesRepository {
     required String id,
     required String name,
     String? nameAr,
-    required double deliveryFee,
+    required double userPaidDeliveryFees,
+    double deliveryFeesPaidToDriver = 0,
     required double minOrderValue,
     required int minRiderQuantity,
     required bool isActive,
+    String? branchId,
   }) =>
       _ds.updateZone(
         id: id,
         name: name,
         nameAr: nameAr,
-        deliveryFee: deliveryFee,
+        userPaidDeliveryFees: userPaidDeliveryFees,
+        deliveryFeesPaidToDriver: deliveryFeesPaidToDriver,
         minOrderValue: minOrderValue,
         minRiderQuantity: minRiderQuantity,
         isActive: isActive,
+        branchId: branchId,
       );
 
   @override
   Future<void> deleteZone(String id) => _ds.deleteZone(id);
+
+  @override
+  Future<void> assignZoneBranch(String zoneId, String? branchId) =>
+      _ds.assignZoneBranch(zoneId, branchId);
 }

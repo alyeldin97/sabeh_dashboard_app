@@ -26,6 +26,7 @@ class SupabaseAppSettingsDataSource implements AppSettingsDataSource {
           'loyalty_max_points_per_order':  settings.loyaltyMaxPointsPerOrder,
           'loyalty_referral_bonus':        settings.loyaltyReferralBonus,
           'loyalty_referral_reward':       settings.loyaltyReferralReward,
+          'online_window_minutes':         settings.onlineWindowMinutes,
           'updated_at':                    DateTime.now().toIso8601String(),
         })
         .eq('id', settings.id)

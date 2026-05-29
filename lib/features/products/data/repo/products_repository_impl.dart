@@ -49,5 +49,12 @@ class ProductsRepositoryImpl implements ProductsRepository {
       );
 
   @override
+  Future<void> updateRelatedProducts({
+    required String productId,
+    required List<String> relatedIds,
+  }) =>
+      _ds.updateRelatedProducts(productId: productId, relatedIds: relatedIds);
+
+  @override
   Future<void> deleteProduct({required String id}) => _ds.deleteProduct(id: id);
 }

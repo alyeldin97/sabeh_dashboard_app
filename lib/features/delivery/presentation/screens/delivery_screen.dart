@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../orders/data/model/order_model.dart';
 import '../../../orders/presentation/cubits/orders_cubit.dart';
 import '../../../orders/presentation/screens/order_details_screen.dart';
@@ -31,8 +32,9 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
+        automaticallyImplyLeading: false,
         title: Text(
-          'Delivery',
+          AppLocalizations.of(context)!.deliveryTitle,
           style: GoogleFonts.nunito(
             fontSize: Responsive.sp(context, 18),
             fontWeight: FontWeight.w700,
@@ -73,7 +75,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                       size: 64.r, color: AppColors.primaryLight),
                   SizedBox(height: 16.h),
                   Text(
-                    'No active deliveries',
+                    AppLocalizations.of(context)!.deliveryEmpty,
                     style: GoogleFonts.nunito(
                       fontSize: Responsive.sp(context, 18),
                       fontWeight: FontWeight.w700,
@@ -82,7 +84,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    'All orders are settled',
+                    AppLocalizations.of(context)!.deliveryAllSettled,
                     style: GoogleFonts.nunito(color: AppColors.textLight),
                   ),
                 ],
@@ -94,7 +96,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
             padding: EdgeInsets.all(16.r),
             children: [
               if (active.isNotEmpty) ...[
-                _SectionLabel('Active (${active.length})'),
+                _SectionLabel(AppLocalizations.of(context)!.deliveryActive(active.length)),
                 SizedBox(height: 10.h),
                 ...active.map((o) => Padding(
                       padding: EdgeInsets.only(bottom: 10.h),
@@ -106,7 +108,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 SizedBox(height: 16.h),
               ],
               if (delivered.isNotEmpty) ...[
-                _SectionLabel('Recently Delivered'),
+                _SectionLabel(AppLocalizations.of(context)!.deliveryRecentlyDelivered),
                 SizedBox(height: 10.h),
                 ...delivered.map((o) => Padding(
                       padding: EdgeInsets.only(bottom: 10.h),
@@ -290,17 +292,18 @@ class _QuickStatusButton extends StatelessWidget {
     }
   }
 
-  String _label(OrderStatus s) {
+  String _label(OrderStatus s, AppLocalizations l10n) {
     switch (s) {
-      case OrderStatus.preparing:      return 'Prepare';
-      case OrderStatus.outForDelivery: return 'Dispatch';
-      case OrderStatus.delivered:      return 'Delivered';
+      case OrderStatus.preparing:      return l10n.deliveryPrepare;
+      case OrderStatus.outForDelivery: return l10n.deliveryDispatch;
+      case OrderStatus.delivered:      return l10n.deliveryDelivered;
       default:                         return '';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final next = _nextStatus;
     if (next == null) return const SizedBox.shrink();
 
@@ -320,7 +323,7 @@ class _QuickStatusButton extends StatelessWidget {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       child: Text(
-        _label(next),
+        _label(next, l10n),
         style: GoogleFonts.nunito(
           fontSize: Responsive.sp(context, 11),
           fontWeight: FontWeight.w700,

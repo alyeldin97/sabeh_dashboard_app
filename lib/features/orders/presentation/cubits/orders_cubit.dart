@@ -99,6 +99,86 @@ class OrdersCubit extends Cubit<OrdersState> {
     }
   }
 
+  Future<void> editOrder({
+    required String orderId,
+    String? notes,
+    String? deliveryAddress,
+    String? paymentMethod,
+    String? customerPhone,
+    String? staffNote,
+    String? branchId,
+  }) async {
+    AppLogger.i(_tag, 'editOrder orderId=$orderId');
+    try {
+      await _repo.updateOrderFields(
+        orderId: orderId,
+        notes: notes,
+        deliveryAddress: deliveryAddress,
+        paymentMethod: paymentMethod,
+        customerPhone: customerPhone,
+        staffNote: staffNote,
+      );
+      await load(branchId: branchId);
+    } catch (e, st) {
+      AppLogger.e(_tag, 'editOrder failed', e, st);
+      emit(state.copyWith(status: OrdersStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> updateItems({
+    required String orderId,
+    required List<Map<String, dynamic>> updatedItems,
+    required List<String> deletedItemIds,
+    required double newTotalPrice,
+    String? branchId,
+  }) async {
+    AppLogger.i(_tag, 'updateItems orderId=$orderId');
+    try {
+      await _repo.updateOrderItems(
+        orderId: orderId,
+        updatedItems: updatedItems,
+        deletedItemIds: deletedItemIds,
+        newTotalPrice: newTotalPrice,
+      );
+      await loadSingle(orderId: orderId);
+    } catch (e, st) {
+      AppLogger.e(_tag, 'updateItems failed', e, st);
+      emit(state.copyWith(status: OrdersStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> editFinancials({
+    required String orderId,
+    required double deliveryFee,
+    required double deposit,
+    required double maradia,
+    required bool isPaid,
+    required double oldDeliveryFee,
+    required double oldTotal,
+    required bool isCashOrder,
+    String? branchId,
+  }) async {
+    AppLogger.i(_tag, 'editFinancials orderId=$orderId');
+    try {
+      final ops = <Future>[];
+      if (deliveryFee != oldDeliveryFee) {
+        ops.add(_repo.updateOrderDeliveryFee(
+          orderId: orderId,
+          fee: deliveryFee,
+          newTotalPrice: oldTotal - oldDeliveryFee + deliveryFee,
+        ));
+      }
+      ops.add(_repo.updateOrderDeposit(orderId: orderId, deposit: deposit));
+      ops.add(_repo.updateOrderMaradia(orderId: orderId, maradia: maradia));
+      ops.add(_repo.markOrderPaid(orderId: orderId, isPaid: isPaid, isCashOrder: isCashOrder));
+      await Future.wait(ops);
+      await loadSingle(orderId: orderId);
+    } catch (e, st) {
+      AppLogger.e(_tag, 'editFinancials failed', e, st);
+      emit(state.copyWith(status: OrdersStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
   void resetCreateStatus() {
     emit(state.copyWith(
       createStatus:   OrdersCreateStatus.idle,

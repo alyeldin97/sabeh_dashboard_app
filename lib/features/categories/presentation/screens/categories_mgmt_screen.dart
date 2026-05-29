@@ -6,6 +6,7 @@ import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../data/model/category.dart';
 import '../cubits/categories_cubit.dart';
@@ -41,7 +42,8 @@ class _CategoriesViewState extends State<_CategoriesView> {
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
-        title: Text('Categories', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 20), fontWeight: FontWeight.w700, color: AppColors.white)),
+        automaticallyImplyLeading: false,
+        title: Text(AppLocalizations.of(context)!.categoriesTitle, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 20), fontWeight: FontWeight.w700, color: AppColors.white)),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: AppColors.white),
@@ -54,7 +56,7 @@ class _CategoriesViewState extends State<_CategoriesView> {
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
         icon: const Icon(Icons.add_rounded),
-        label: Text('Add Category', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        label: Text(AppLocalizations.of(context)!.categoriesAddCategory, style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         onPressed: () => _openForm(context, null),
       ),
       body: Column(
@@ -68,7 +70,7 @@ class _CategoriesViewState extends State<_CategoriesView> {
                   Icon(Icons.drag_indicator_rounded, size: 16.r, color: AppColors.textLight),
                   SizedBox(width: 4),
                   Text(
-                    'Drag to reorder',
+                    AppLocalizations.of(context)!.categoriesDragReorder,
                     style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight),
                   ),
                 ],
@@ -87,7 +89,7 @@ class _CategoriesViewState extends State<_CategoriesView> {
       child: TextField(
         onChanged: (v) => setState(() => _search = v.toLowerCase()),
         decoration: InputDecoration(
-          hintText: 'Search categories...',
+          hintText: AppLocalizations.of(context)!.categoriesSearchHint,
           hintStyle: GoogleFonts.nunito(color: AppColors.textLight, fontSize: Responsive.sp(context, 14)),
           prefixIcon: Icon(Icons.search_rounded, color: AppColors.textLight),
           filled: true,
@@ -121,9 +123,9 @@ class _CategoriesViewState extends State<_CategoriesView> {
               children: [
                 Icon(Icons.grid_view_rounded, size: 64.r, color: AppColors.primaryLight),
                 SizedBox(height: 16.h),
-                Text('No categories yet', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 18), fontWeight: FontWeight.w700, color: AppColors.textCharcoal)),
+                Text(AppLocalizations.of(context)!.categoriesEmpty, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 18), fontWeight: FontWeight.w700, color: AppColors.textCharcoal)),
                 SizedBox(height: 8.h),
-                Text('Tap + to add your first category', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), color: AppColors.textLight)),
+                Text(AppLocalizations.of(context)!.categoriesEmptyHint, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), color: AppColors.textLight)),
               ],
             ),
           );
@@ -187,16 +189,16 @@ class _CategoriesViewState extends State<_CategoriesView> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r16),
-        title: Text('Delete Category', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
-        content: Text('Remove "${category.name}"? This will deactivate it.', style: GoogleFonts.nunito(color: AppColors.textMid)),
+        title: Text(AppLocalizations.of(context)!.categoriesDeleteTitle, style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        content: Text(AppLocalizations.of(context)!.categoriesDeleteConfirm(category.name), style: GoogleFonts.nunito(color: AppColors.textMid)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel', style: GoogleFonts.nunito(color: AppColors.textLight))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.categoriesCancel, style: GoogleFonts.nunito(color: AppColors.textLight))),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await context.read<CategoriesCubit>().delete(id: category.id, branchId: widget.branchId);
             },
-            child: Text('Delete', style: GoogleFonts.nunito(color: AppColors.error, fontWeight: FontWeight.w700)),
+            child: Text(AppLocalizations.of(context)!.categoriesDelete, style: GoogleFonts.nunito(color: AppColors.error, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -261,7 +263,7 @@ class _CategoryTile extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(color: const Color(0xFFFFEBEE), borderRadius: AppBorderRadius.r8),
-                        child: Text('Inactive', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 10), fontWeight: FontWeight.w700, color: AppColors.error)),
+                        child: Text(AppLocalizations.of(context)!.categoriesInactive, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 10), fontWeight: FontWeight.w700, color: AppColors.error)),
                       ),
                   ],
                 ),

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -37,6 +38,9 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
       text: widget.code?.maxUsesPerUser.toString() ?? '1');
   late final _descCtrl =
       TextEditingController(text: widget.code?.description ?? '');
+  late final _cashbackExpiryDaysCtrl = TextEditingController(
+      text: widget.code?.cashbackExpiryDays?.toString() ?? '30');
+  late bool _cashbackPointsExpire = widget.code?.cashbackExpiryDays != null;
   late PromoType _type = widget.code?.type ?? PromoType.percentage;
   late bool _isActive = widget.code?.isActive ?? true;
   late DateTime? _expiresAt = widget.code?.expiresAt;
@@ -52,6 +56,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
     _maxUsesCtrl.dispose();
     _maxPerUserCtrl.dispose();
     _descCtrl.dispose();
+    _cashbackExpiryDaysCtrl.dispose();
     super.dispose();
   }
 
@@ -92,32 +97,38 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
         _maxUsesCtrl.text.trim().isEmpty ? null : int.tryParse(_maxUsesCtrl.text.trim());
     final maxPerUser = int.tryParse(_maxPerUserCtrl.text.trim()) ?? 1;
 
+    final cashbackExpiryDays = _type == PromoType.cashback && _cashbackPointsExpire
+        ? int.tryParse(_cashbackExpiryDaysCtrl.text.trim())
+        : null;
+
     bool ok;
     if (_isEditing) {
       ok = await cubit.update(
-        id:            widget.code!.id,
-        code:          _codeCtrl.text.trim(),
-        type:          _type,
-        discountValue: discountValue,
-        minOrder:      minOrder,
-        maxUses:       maxUses,
-        expiresAt:     _expiresAt,
-        startsAt:      _startsAt,
-        isActive:      _isActive,
-        description:   _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-        maxUsesPerUser: maxPerUser,
+        id:                 widget.code!.id,
+        code:               _codeCtrl.text.trim(),
+        type:               _type,
+        discountValue:      discountValue,
+        minOrder:           minOrder,
+        maxUses:            maxUses,
+        expiresAt:          _expiresAt,
+        startsAt:           _startsAt,
+        isActive:           _isActive,
+        description:        _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+        maxUsesPerUser:     maxPerUser,
+        cashbackExpiryDays: cashbackExpiryDays,
       );
     } else {
       ok = await cubit.create(
-        code:          _codeCtrl.text.trim(),
-        type:          _type,
-        discountValue: discountValue,
-        minOrder:      minOrder,
-        maxUses:       maxUses,
-        expiresAt:     _expiresAt,
-        startsAt:      _startsAt,
-        description:   _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-        maxUsesPerUser: maxPerUser,
+        code:               _codeCtrl.text.trim(),
+        type:               _type,
+        discountValue:      discountValue,
+        minOrder:           minOrder,
+        maxUses:            maxUses,
+        expiresAt:          _expiresAt,
+        startsAt:           _startsAt,
+        description:        _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+        maxUsesPerUser:     maxPerUser,
+        cashbackExpiryDays: cashbackExpiryDays,
       );
     }
     if (ok && mounted) Navigator.of(context).pop(true);
@@ -125,13 +136,14 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
         title: Text(
-          _isEditing ? 'Edit Promo Code' : 'New Promo Code',
+          _isEditing ? l10n.promoCodeFormEditTitle : l10n.promoCodeFormNewTitle,
           style: GoogleFonts.nunito(
               fontSize: Responsive.sp(context, 18),
               fontWeight: FontWeight.w700,
@@ -147,7 +159,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
               padding: EdgeInsets.all(20.r),
               children: [
                 // Code field
-                _Label(text: 'Promo Code'),
+                _Label(text: l10n.promoCodeFormCodeField),
                 SizedBox(height: 6.h),
                 TextFormField(
                   controller: _codeCtrl,
@@ -167,16 +179,16 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                       icon: Icon(Icons.auto_awesome_rounded,
                           size: 18.r, color: AppColors.primaryMid),
                       onPressed: _generateCode,
-                      tooltip: 'Generate random code',
+                      tooltip: l10n.promoCodeFormGenerate,
                     ),
                   ),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Code is required' : null,
+                      (v == null || v.trim().isEmpty) ? l10n.promoCodeFormCodeRequired : null,
                 ),
                 SizedBox(height: 16.h),
 
                 // Type dropdown
-                _Label(text: 'Discount Type'),
+                _Label(text: l10n.promoCodeFormDiscountType),
                 SizedBox(height: 6.h),
                 DropdownButtonFormField<PromoType>(
                   value: _type,
@@ -191,12 +203,14 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                 ),
                 SizedBox(height: 16.h),
 
-                // Discount value (only for percentage/fixed)
+                // Discount value (only for percentage/fixed/cashback)
                 if (_type.hasDiscountValue) ...[
                   _Label(
-                      text: _type == PromoType.percentage
-                          ? 'Discount Percentage'
-                          : 'Discount Amount (EGP)'),
+                      text: _type == PromoType.cashback
+                          ? 'Cashback % of Order Total'
+                          : _type == PromoType.percentage
+                              ? l10n.promoCodeFormDiscountPct
+                              : l10n.promoCodeFormDiscountAmount),
                   SizedBox(height: 6.h),
                   TextFormField(
                     controller: _discountCtrl,
@@ -205,19 +219,22 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                         fontSize: Responsive.sp(context, 14),
                         color: AppColors.textDark),
                     decoration: _decoration(
-                      icon: _type == PromoType.percentage
-                          ? Icons.percent_rounded
-                          : Icons.attach_money_rounded,
-                      hint: _type == PromoType.percentage ? '20' : '50',
-                      suffixText:
-                          _type == PromoType.percentage ? '%' : 'EGP',
+                      icon: _type == PromoType.cashback
+                          ? Icons.stars_rounded
+                          : _type == PromoType.percentage
+                              ? Icons.percent_rounded
+                              : Icons.attach_money_rounded,
+                      hint: _type == PromoType.percentage || _type == PromoType.cashback ? '10' : '50',
+                      suffixText: _type == PromoType.cashback || _type == PromoType.percentage
+                          ? '%'
+                          : 'EGP',
                     ),
                     validator: (v) {
                       if (!_type.hasDiscountValue) return null;
                       final n = double.tryParse(v ?? '');
-                      if (n == null || n <= 0) return 'Enter a valid value';
-                      if (_type == PromoType.percentage && n > 100) {
-                        return 'Percentage cannot exceed 100%';
+                      if (n == null || n <= 0) return l10n.promoCodeFormInvalidValue;
+                      if ((_type == PromoType.percentage || _type == PromoType.cashback) && n > 100) {
+                        return l10n.promoCodeFormPctMax;
                       }
                       return null;
                     },
@@ -225,8 +242,75 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                   SizedBox(height: 16.h),
                 ],
 
+                // Cashback expiry toggle + days (only for cashback type)
+                if (_type == PromoType.cashback) ...[
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: AppBorderRadius.r12,
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(children: [
+                      Icon(Icons.timer_outlined, size: 20.r, color: AppColors.textLight),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Points Have Expiry',
+                              style: GoogleFonts.nunito(
+                                fontSize: Responsive.sp(context, 14),
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            Text(
+                              _cashbackPointsExpire
+                                  ? 'Points expire after the set days'
+                                  : 'Points never expire (permanent)',
+                              style: GoogleFonts.nunito(
+                                fontSize: Responsive.sp(context, 11),
+                                color: AppColors.textLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _cashbackPointsExpire,
+                        onChanged: (v) => setState(() => _cashbackPointsExpire = v),
+                        activeThumbColor: AppColors.primaryDeep,
+                      ),
+                    ]),
+                  ),
+                  if (_cashbackPointsExpire) ...[
+                    SizedBox(height: 12.h),
+                    _Label(text: 'Points Expiry (days after earning)'),
+                    SizedBox(height: 6.h),
+                    TextFormField(
+                      controller: _cashbackExpiryDaysCtrl,
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.nunito(
+                          fontSize: Responsive.sp(context, 14),
+                          color: AppColors.textDark),
+                      decoration: _decoration(
+                        icon: Icons.hourglass_bottom_rounded,
+                        hint: '30',
+                      ),
+                      validator: (v) {
+                        if (!_cashbackPointsExpire) return null;
+                        final n = int.tryParse(v?.trim() ?? '');
+                        if (n == null || n <= 0) return 'Enter a positive number of days';
+                        return null;
+                      },
+                    ),
+                  ],
+                  SizedBox(height: 16.h),
+                ],
+
                 // Description
-                _Label(text: 'Description (optional)'),
+                _Label(text: l10n.promoCodeFormDescription),
                 SizedBox(height: 6.h),
                 TextFormField(
                   controller: _descCtrl,
@@ -240,7 +324,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                 SizedBox(height: 16.h),
 
                 // Min order
-                _Label(text: 'Minimum Order Value (EGP)'),
+                _Label(text: l10n.promoCodeFormMinOrder),
                 SizedBox(height: 6.h),
                 TextFormField(
                   controller: _minOrderCtrl,
@@ -257,7 +341,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                 Row(children: [
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      _Label(text: 'Max Total Uses'),
+                      _Label(text: l10n.promoCodeFormMaxUses),
                       SizedBox(height: 6.h),
                       TextFormField(
                         controller: _maxUsesCtrl,
@@ -273,7 +357,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      _Label(text: 'Per User Limit'),
+                      _Label(text: l10n.promoCodeFormPerUser),
                       SizedBox(height: 6.h),
                       TextFormField(
                         controller: _maxPerUserCtrl,
@@ -285,7 +369,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                             icon: Icons.person_outline_rounded, hint: '1'),
                         validator: (v) {
                           final n = int.tryParse(v ?? '');
-                          if (n == null || n < 1) return 'Min 1';
+                          if (n == null || n < 1) return l10n.promoCodeFormMin1;
                           return null;
                         },
                       ),
@@ -296,14 +380,14 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
 
                 // Date pickers
                 _DatePickerRow(
-                  label: 'Start Date (optional)',
+                  label: l10n.promoCodeFormStartDate,
                   date: _startsAt,
                   onPick: () => _pickDate(false),
                   onClear: () => setState(() => _startsAt = null),
                 ),
                 SizedBox(height: 12.h),
                 _DatePickerRow(
-                  label: 'Expiry Date (optional)',
+                  label: l10n.promoCodeFormExpiryDate,
                   date: _expiresAt,
                   onPick: () => _pickDate(true),
                   onClear: () => setState(() => _expiresAt = null),
@@ -324,7 +408,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                           color: AppColors.textLight, size: 20.r),
                       SizedBox(width: 12.w),
                       Expanded(
-                          child: Text('Active',
+                          child: Text(l10n.promoCodeFormActive,
                               style: GoogleFonts.nunito(
                                   fontSize: Responsive.sp(context, 14),
                                   color: AppColors.textDark))),
@@ -358,7 +442,7 @@ class _PromoCodeFormScreenState extends State<PromoCodeFormScreen> {
                             child: const CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white))
                         : Text(
-                            _isEditing ? 'Save Changes' : 'Create Promo Code',
+                            _isEditing ? l10n.promoCodeFormSaveChanges : l10n.promoCodeFormCreate,
                             style: GoogleFonts.nunito(
                                 fontSize: Responsive.sp(context, 15),
                                 fontWeight: FontWeight.w700)),

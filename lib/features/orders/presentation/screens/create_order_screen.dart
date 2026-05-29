@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
@@ -30,6 +31,19 @@ class _CartEntry {
   double get subtotal => effectivePrice * quantity;
 }
 
+// Holds a custom (non-catalogue) item added to the cart
+class _CustomItem {
+  final String key;
+  String name;
+  double price;
+  int quantity;
+
+  _CustomItem({required this.key, required this.name, required this.price})
+      : quantity = 1;
+
+  double get subtotal => price * quantity;
+}
+
 class CreateOrderScreen extends StatefulWidget {
   const CreateOrderScreen({super.key, this.preselectedCustomer});
   final Customer? preselectedCustomer;
@@ -51,6 +65,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   // Step 1
   final Map<String, _CartEntry> _cart = {};
+  final List<_CustomItem> _customItems = [];
+  int _customItemCounter = 0;
   final _productSearchCtrl = TextEditingController();
   String _productFilter = '';
 
@@ -95,9 +111,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   }
 
   double get _subtotal =>
-      _cart.values.fold(0.0, (sum, e) => sum + e.subtotal);
+      _cart.values.fold(0.0, (sum, e) => sum + e.subtotal) +
+      _customItems.fold(0.0, (sum, e) => sum + e.subtotal);
 
-  double get _deliveryFee => _selectedZone?.deliveryFee ?? 0;
+  double get _deliveryFee => _selectedZone?.userPaidDeliveryFees ?? 0;
 
   double get _total => (_subtotal + _deliveryFee - _discount).clamp(0, double.infinity);
 
@@ -119,7 +136,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   bool get _canAdvance {
     switch (_step) {
       case 0: return _selectedCustomer != null;
-      case 1: return _cart.isNotEmpty;
+      case 1: return _cart.isNotEmpty || _customItems.isNotEmpty;
       case 2: return _selectedBranch != null;
       case 3: return true;
       default: return false;
@@ -133,8 +150,11 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       'customer_id':      _selectedCustomer?.id,
       'status':           'confirmed',
       'total_price':      _total,
-      'delivery_fee':     _deliveryFee,
-      'service_fee':      0,
+      'user_paid_delivery_fees': _deliveryFee,
+      'driver_delivery_cost':    _selectedZone?.deliveryFeesPaidToDriver ?? 0,
+      if (_selectedZone != null) 'zone_name': _selectedZone!.name,
+      if (_selectedZone != null) 'zone_id':   _selectedZone!.id,
+      'service_fee':             0,
       'promo_discount':   _discount,
       'loyalty_discount': 0,
       'delivery_address': _selectedAddress?.fullAddress ?? 'Manual Order',
@@ -144,14 +164,23 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       'points_redeemed':  0,
     };
 
-    final items = _cart.values.map((e) => {
-      'product_id':   e.product.id,
-      'product_name': e.product.name,
-      'quantity':     e.quantity,
-      'unit_price':   e.effectivePrice,
-      'subtotal':     e.subtotal,
-      if (e.variant != null) 'variant_id': e.variant!.id,
-    }).toList();
+    final items = [
+      ..._cart.values.map((e) => {
+        'product_id':   e.product.id,
+        'product_name': e.product.name,
+        'quantity':     e.quantity,
+        'unit_price':   e.effectivePrice,
+        'subtotal':     e.subtotal,
+        if (e.variant != null) 'variant_id': e.variant!.id,
+      }),
+      ..._customItems.map((e) => {
+        'product_id':   null,
+        'product_name': e.name,
+        'quantity':     e.quantity,
+        'unit_price':   e.price,
+        'subtotal':     e.subtotal,
+      }),
+    ];
 
     context.read<OrdersCubit>().createOrder(
       orderData: orderData,
@@ -269,10 +298,34 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
         );
       case 1: return _Step1SelectProducts(
           cart: _cart,
+          customItems: _customItems,
           filterText: _productFilter,
           searchCtrl: _productSearchCtrl,
           onFilterChanged: (v) => setState(() => _productFilter = v),
           onCartChanged: () => setState(() {}),
+          onAddCustomItem: (name, price) {
+            setState(() {
+              _customItems.add(_CustomItem(
+                key: 'custom_${_customItemCounter++}',
+                name: name,
+                price: price,
+              ));
+            });
+          },
+          onRemoveCustomItem: (key) {
+            setState(() => _customItems.removeWhere((e) => e.key == key));
+          },
+          onCustomItemQtyChanged: (key, delta) {
+            setState(() {
+              final item = _customItems.firstWhere((e) => e.key == key);
+              final newQty = item.quantity + delta;
+              if (newQty <= 0) {
+                _customItems.removeWhere((e) => e.key == key);
+              } else {
+                item.quantity = newQty;
+              }
+            });
+          },
         );
       case 2: return _Step2OrderDetails(
           selectedZone: _selectedZone,
@@ -283,6 +336,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           notesCtrl: _notesCtrl,
           paymentMethod: _paymentMethod,
           subtotal: _subtotal,
+          customerId: _selectedCustomer?.id,
           onZoneChanged: (z) => setState(() => _selectedZone = z),
           onBranchChanged: (b) => setState(() => _selectedBranch = b),
           onAddressChanged: (a) => setState(() => _selectedAddress = a),
@@ -292,6 +346,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       case 3: return _Step3Confirm(
           customer: _selectedCustomer,
           cart: _cart,
+          customItems: _customItems,
           zone: _selectedZone,
           branch: _selectedBranch,
           address: _selectedAddress,
@@ -700,32 +755,155 @@ class _Step0SelectCustomer extends StatelessWidget {
 class _Step1SelectProducts extends StatelessWidget {
   const _Step1SelectProducts({
     required this.cart,
+    required this.customItems,
     required this.filterText,
     required this.searchCtrl,
     required this.onFilterChanged,
     required this.onCartChanged,
+    required this.onAddCustomItem,
+    required this.onRemoveCustomItem,
+    required this.onCustomItemQtyChanged,
   });
   final Map<String, _CartEntry> cart;
+  final List<_CustomItem> customItems;
   final String filterText;
   final TextEditingController searchCtrl;
   final void Function(String) onFilterChanged;
   final VoidCallback onCartChanged;
+  final void Function(String name, double price) onAddCustomItem;
+  final void Function(String key) onRemoveCustomItem;
+  final void Function(String key, int delta) onCustomItemQtyChanged;
+
+  static String _variantLabel(Product product, ProductVariant variant) {
+    final allValues = product.options.expand((o) => o.values).toList();
+    final labels = variant.optionValueIds.map((id) {
+      try { return allValues.firstWhere((v) => v.id == id).value; } catch (_) { return null; }
+    }).whereType<String>().toList();
+    return labels.isEmpty
+        ? 'EGP ${variant.price.toStringAsFixed(0)}'
+        : '${labels.join(' / ')} — EGP ${variant.price.toStringAsFixed(0)}';
+  }
+
+  void _showAddCustomItemSheet(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final priceCtrl = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            16, 20, 16, MediaQuery.of(sheetCtx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Add Custom Item',
+                style: GoogleFonts.nunito(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark)),
+            SizedBox(height: 16.h),
+            TextField(
+              controller: nameCtrl,
+              autofocus: true,
+              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textDark),
+              decoration: InputDecoration(
+                labelText: 'Item Name *',
+                hintText: 'e.g. Special Tray',
+                labelStyle: GoogleFonts.nunito(color: AppColors.textLight),
+                filled: true,
+                fillColor: AppColors.scaffoldBg,
+                border: OutlineInputBorder(
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide: BorderSide(color: AppColors.border)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide: BorderSide(color: AppColors.border)),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide:
+                        BorderSide(color: AppColors.primaryMid, width: 2)),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            TextField(
+              controller: priceCtrl,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textDark),
+              decoration: InputDecoration(
+                labelText: 'Price (EGP) *',
+                hintText: '0.00',
+                labelStyle: GoogleFonts.nunito(color: AppColors.textLight),
+                filled: true,
+                fillColor: AppColors.scaffoldBg,
+                border: OutlineInputBorder(
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide: BorderSide(color: AppColors.border)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide: BorderSide(color: AppColors.border)),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide:
+                        BorderSide(color: AppColors.primaryMid, width: 2)),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            SizedBox(
+              width: double.infinity,
+              height: 48.h,
+              child: StatefulBuilder(builder: (ctx, setSt) {
+                return ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryDeep,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: AppBorderRadius.r12),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    final name = nameCtrl.text.trim();
+                    final price =
+                        double.tryParse(priceCtrl.text.trim()) ?? 0;
+                    if (name.isEmpty || price <= 0) return;
+                    onAddCustomItem(name, price);
+                    Navigator.of(sheetCtx).pop();
+                  },
+                  child: Text('Add to Order',
+                      style: GoogleFonts.nunito(
+                          fontSize: 15, fontWeight: FontWeight.w700)),
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProductsCubit, ProductsState>(
       builder: (context, state) {
-        final allProducts = state.products
-            .where((p) => p.isActive)
-            .toList();
+        final allProducts =
+            state.products.where((p) => p.isActive).toList();
         final filtered = filterText.isEmpty
             ? allProducts
             : allProducts
-                .where((p) =>
-                    p.name.toLowerCase().contains(filterText.toLowerCase()))
+                .where((p) => p.name
+                    .toLowerCase()
+                    .contains(filterText.toLowerCase()))
                 .toList();
 
-        final subtotal = cart.values.fold(0.0, (s, e) => s + e.subtotal);
+        final hasSelected = cart.isNotEmpty || customItems.isNotEmpty;
+        final subtotal =
+            cart.values.fold(0.0, (s, e) => s + e.subtotal) +
+                customItems.fold(0.0, (s, e) => s + e.subtotal);
 
         return Column(
           children: [
@@ -748,48 +926,327 @@ class _Step1SelectProducts extends StatelessWidget {
               )
             else
               Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, cart.isEmpty ? 16.h : 120.h),
-                  itemCount: filtered.length,
-                  itemBuilder: (_, i) {
-                    final product = filtered[i];
-                    final entry = cart[product.id];
-                    return _ProductRow(
-                      product: product,
-                      entry: entry,
-                      onAdd: () {
-                        if (!cart.containsKey(product.id)) {
-                          cart[product.id] = _CartEntry(product);
-                        } else {
-                          cart[product.id]!.quantity++;
-                        }
-                        onCartChanged();
-                      },
-                      onRemove: () {
-                        if (cart.containsKey(product.id)) {
-                          if (cart[product.id]!.quantity <= 1) {
-                            cart.remove(product.id);
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                      16.w, 8.h, 16.w, hasSelected ? 120.h : 16.h),
+                  children: [
+                    // ── Selected items section ────────────────────────────
+                    if (hasSelected) ...[
+                      _SectionHeader(
+                        label: 'Selected Items',
+                        trailing: GestureDetector(
+                          onTap: () => _showAddCustomItemSheet(context),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add_circle_outline_rounded,
+                                  size: 16.r, color: AppColors.primaryDeep),
+                              SizedBox(width: 4.w),
+                              Text('Custom Item',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: Responsive.sp(context, 12),
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryDeep,
+                                  )),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      ...cart.values.map((entry) => _SelectedProductRow(
+                            entry: entry,
+                            variantLabel: entry.variant != null
+                                ? _variantLabel(
+                                    entry.product, entry.variant!)
+                                : null,
+                            onAdd: () {
+                              entry.quantity++;
+                              onCartChanged();
+                            },
+                            onRemove: () {
+                              if (entry.quantity <= 1) {
+                                cart.remove(entry.product.id);
+                              } else {
+                                entry.quantity--;
+                              }
+                              onCartChanged();
+                            },
+                            onVariantChanged: (v) {
+                              entry.variant = v;
+                              onCartChanged();
+                            },
+                          )),
+                      ...customItems.map((item) => _CustomItemRow(
+                            item: item,
+                            onAdd: () =>
+                                onCustomItemQtyChanged(item.key, 1),
+                            onRemove: () =>
+                                onCustomItemQtyChanged(item.key, -1),
+                            onDelete: () => onRemoveCustomItem(item.key),
+                          )),
+                      SizedBox(height: 10.h),
+                      Divider(color: AppColors.border),
+                      SizedBox(height: 2.h),
+                    ] else ...[
+                      GestureDetector(
+                        onTap: () => _showAddCustomItemSheet(context),
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: 10.h),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 14.w, vertical: 12.h),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: AppBorderRadius.r12,
+                            border: Border.all(color: AppColors.primaryLight),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.add_rounded,
+                                  size: 18.r, color: AppColors.primaryDeep),
+                              SizedBox(width: 8.w),
+                              Text('Add Custom Item',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: Responsive.sp(context, 13),
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryDeep,
+                                  )),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    // ── All products ───────────────────────────────────────
+                    if (hasSelected) ...[
+                      _SectionHeader(label: 'All Products'),
+                      SizedBox(height: 6.h),
+                    ],
+                    ...filtered.map((product) {
+                      final entry = cart[product.id];
+                      return _ProductRow(
+                        product: product,
+                        entry: entry,
+                        variantLabelFn: (v) => _variantLabel(product, v),
+                        onAdd: () {
+                          if (!cart.containsKey(product.id)) {
+                            cart[product.id] = _CartEntry(product);
                           } else {
-                            cart[product.id]!.quantity--;
+                            cart[product.id]!.quantity++;
                           }
                           onCartChanged();
-                        }
-                      },
-                      onVariantChanged: (v) {
-                        if (cart.containsKey(product.id)) {
-                          cart[product.id]!.variant = v;
-                          onCartChanged();
-                        }
-                      },
-                    );
-                  },
+                        },
+                        onRemove: () {
+                          if (cart.containsKey(product.id)) {
+                            if (cart[product.id]!.quantity <= 1) {
+                              cart.remove(product.id);
+                            } else {
+                              cart[product.id]!.quantity--;
+                            }
+                            onCartChanged();
+                          }
+                        },
+                        onVariantChanged: (v) {
+                          if (cart.containsKey(product.id)) {
+                            cart[product.id]!.variant = v;
+                            onCartChanged();
+                          }
+                        },
+                      );
+                    }),
+                  ],
                 ),
               ),
-            if (cart.isNotEmpty)
-              _CartSummaryBar(cart: cart, subtotal: subtotal),
+            if (hasSelected)
+              _CartSummaryBar(
+                  cart: cart, customItems: customItems, subtotal: subtotal),
           ],
         );
       },
+    );
+  }
+}
+
+// Compact row for a product already in the selected section (top)
+class _SelectedProductRow extends StatelessWidget {
+  const _SelectedProductRow({
+    required this.entry,
+    required this.variantLabel,
+    required this.onAdd,
+    required this.onRemove,
+    required this.onVariantChanged,
+  });
+  final _CartEntry entry;
+  final String? variantLabel;
+  final VoidCallback onAdd;
+  final VoidCallback onRemove;
+  final void Function(ProductVariant?) onVariantChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeVariants =
+        entry.product.variants.where((v) => v.isActive).toList();
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: AppColors.primaryMist,
+        borderRadius: AppBorderRadius.r12,
+        border: Border.all(color: AppColors.primaryLight, width: 1.5),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.product.name,
+                      style: GoogleFonts.nunito(
+                        fontSize: Responsive.sp(context, 13),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDeep,
+                      ),
+                    ),
+                    Text(
+                      variantLabel != null
+                          ? '$variantLabel'
+                          : 'EGP ${entry.effectivePrice.toStringAsFixed(2)}',
+                      style: GoogleFonts.nunito(
+                        fontSize: Responsive.sp(context, 11),
+                        color: AppColors.primaryMid,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _QtyControl(
+                quantity: entry.quantity,
+                onAdd: onAdd,
+                onRemove: onRemove,
+              ),
+            ],
+          ),
+          if (activeVariants.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            SizedBox(
+              height: 32.h,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: activeVariants.map((v) {
+                  final selected = entry.variant?.id == v.id;
+                  return GestureDetector(
+                    onTap: () => onVariantChanged(selected ? null : v),
+                    child: Container(
+                      margin: EdgeInsets.only(right: 6.w),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 10.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.primaryDeep
+                            : AppColors.white,
+                        borderRadius: AppBorderRadius.r8,
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primaryDeep
+                              : AppColors.border,
+                        ),
+                      ),
+                      child: Text(
+                        _Step1SelectProducts._variantLabel(
+                            entry.product, v),
+                        style: GoogleFonts.nunito(
+                          fontSize: Responsive.sp(context, 11),
+                          fontWeight: FontWeight.w700,
+                          color: selected
+                              ? AppColors.white
+                              : AppColors.textMid,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// Row for a custom (non-catalogue) item in the selected section
+class _CustomItemRow extends StatelessWidget {
+  const _CustomItemRow({
+    required this.item,
+    required this.onAdd,
+    required this.onRemove,
+    required this.onDelete,
+  });
+  final _CustomItem item;
+  final VoidCallback onAdd;
+  final VoidCallback onRemove;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: AppBorderRadius.r12,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32.r,
+            height: 32.r,
+            decoration: BoxDecoration(
+              color: AppColors.scaffoldBg,
+              borderRadius: AppBorderRadius.r8,
+            ),
+            child: Icon(Icons.edit_note_rounded,
+                size: 18.r, color: AppColors.textLight),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 13),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                Text(
+                  'EGP ${item.price.toStringAsFixed(2)} — custom',
+                  style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 11),
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _QtyControl(
+            quantity: item.quantity,
+            onAdd: onAdd,
+            onRemove: onRemove,
+          ),
+          SizedBox(width: 8.w),
+          GestureDetector(
+            onTap: onDelete,
+            child: Icon(Icons.delete_outline_rounded,
+                size: 20.r, color: AppColors.error),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -798,12 +1255,14 @@ class _ProductRow extends StatelessWidget {
   const _ProductRow({
     required this.product,
     required this.entry,
+    required this.variantLabelFn,
     required this.onAdd,
     required this.onRemove,
     required this.onVariantChanged,
   });
   final Product product;
   final _CartEntry? entry;
+  final String Function(ProductVariant) variantLabelFn;
   final VoidCallback onAdd;
   final VoidCallback onRemove;
   final void Function(ProductVariant?) onVariantChanged;
@@ -886,46 +1345,10 @@ class _ProductRow extends StatelessWidget {
                   ),
                 )
               else
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: onRemove,
-                      child: Container(
-                        width: 30.r,
-                        height: 30.r,
-                        decoration: BoxDecoration(
-                          color: AppColors.scaffoldBg,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Icon(Icons.remove_rounded,
-                            size: 16.r, color: AppColors.textMid),
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      '${entry!.quantity}',
-                      style: GoogleFonts.nunito(
-                        fontSize: Responsive.sp(context, 15),
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    GestureDetector(
-                      onTap: onAdd,
-                      child: Container(
-                        width: 30.r,
-                        height: 30.r,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryDeep,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.add_rounded,
-                            size: 16.r, color: AppColors.white),
-                      ),
-                    ),
-                  ],
+                _QtyControl(
+                  quantity: entry!.quantity,
+                  onAdd: onAdd,
+                  onRemove: onRemove,
                 ),
             ],
           ),
@@ -955,7 +1378,7 @@ class _ProductRow extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'EGP ${v.price.toStringAsFixed(0)}',
+                        variantLabelFn(v),
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 11),
                           fontWeight: FontWeight.w700,
@@ -976,14 +1399,103 @@ class _ProductRow extends StatelessWidget {
   }
 }
 
+// Shared qty +/- control
+class _QtyControl extends StatelessWidget {
+  const _QtyControl({
+    required this.quantity,
+    required this.onAdd,
+    required this.onRemove,
+  });
+  final int quantity;
+  final VoidCallback onAdd;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onRemove,
+          child: Container(
+            width: 30.r,
+            height: 30.r,
+            decoration: BoxDecoration(
+              color: AppColors.scaffoldBg,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Icon(Icons.remove_rounded,
+                size: 16.r, color: AppColors.textMid),
+          ),
+        ),
+        SizedBox(width: 8.w),
+        Text(
+          '$quantity',
+          style: GoogleFonts.nunito(
+            fontSize: Responsive.sp(context, 15),
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark,
+          ),
+        ),
+        SizedBox(width: 8.w),
+        GestureDetector(
+          onTap: onAdd,
+          child: Container(
+            width: 30.r,
+            height: 30.r,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryDeep,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.add_rounded,
+                size: 16.r, color: AppColors.white),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label, this.trailing});
+  final String label;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: GoogleFonts.nunito(
+            fontSize: Responsive.sp(context, 11),
+            fontWeight: FontWeight.w800,
+            color: AppColors.textLight,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const Spacer(),
+        if (trailing != null) trailing!,
+      ],
+    );
+  }
+}
+
 class _CartSummaryBar extends StatelessWidget {
-  const _CartSummaryBar({required this.cart, required this.subtotal});
+  const _CartSummaryBar({
+    required this.cart,
+    required this.customItems,
+    required this.subtotal,
+  });
   final Map<String, _CartEntry> cart;
+  final List<_CustomItem> customItems;
   final double subtotal;
 
   @override
   Widget build(BuildContext context) {
-    final itemCount = cart.values.fold(0, (s, e) => s + e.quantity);
+    final itemCount = cart.values.fold(0, (s, e) => s + e.quantity) +
+        customItems.fold(0, (s, e) => s + e.quantity);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
@@ -1001,7 +1513,7 @@ class _CartSummaryBar extends StatelessWidget {
           Container(
             width: 28.r,
             height: 28.r,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.white,
               shape: BoxShape.circle,
             ),
@@ -1044,7 +1556,7 @@ class _CartSummaryBar extends StatelessWidget {
 // STEP 2 — Order Details
 // ═══════════════════════════════════════════════════════════════════════════════
 
-class _Step2OrderDetails extends StatelessWidget {
+class _Step2OrderDetails extends StatefulWidget {
   const _Step2OrderDetails({
     required this.selectedZone,
     required this.selectedBranch,
@@ -1054,6 +1566,7 @@ class _Step2OrderDetails extends StatelessWidget {
     required this.notesCtrl,
     required this.paymentMethod,
     required this.subtotal,
+    required this.customerId,
     required this.onZoneChanged,
     required this.onBranchChanged,
     required this.onAddressChanged,
@@ -1068,6 +1581,7 @@ class _Step2OrderDetails extends StatelessWidget {
   final TextEditingController notesCtrl;
   final String paymentMethod;
   final double subtotal;
+  final String? customerId;
   final void Function(DeliveryZoneModel?) onZoneChanged;
   final void Function(BranchModel?) onBranchChanged;
   final void Function(CustomerAddress?) onAddressChanged;
@@ -1075,28 +1589,88 @@ class _Step2OrderDetails extends StatelessWidget {
   final void Function(String) onPaymentChanged;
 
   @override
+  State<_Step2OrderDetails> createState() => _Step2OrderDetailsState();
+}
+
+class _Step2OrderDetailsState extends State<_Step2OrderDetails> {
+  bool _showAddressForm = false;
+  bool _savingAddress = false;
+  final _addrLabelCtrl = TextEditingController();
+  final _addrStreetCtrl = TextEditingController();
+  final _addrBuildingCtrl = TextEditingController();
+  final _addrFloorCtrl = TextEditingController();
+  final _addrAptCtrl = TextEditingController();
+  final _addrLandmarkCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _addrLabelCtrl.dispose();
+    _addrStreetCtrl.dispose();
+    _addrBuildingCtrl.dispose();
+    _addrFloorCtrl.dispose();
+    _addrAptCtrl.dispose();
+    _addrLandmarkCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveAddress(BuildContext context) async {
+    final street = _addrStreetCtrl.text.trim();
+    if (street.isEmpty || widget.customerId == null) return;
+    setState(() => _savingAddress = true);
+    final addr = await context.read<CustomersCubit>().createAddress(
+          customerId: widget.customerId!,
+          label: _addrLabelCtrl.text.trim().isEmpty
+              ? null
+              : _addrLabelCtrl.text.trim(),
+          street: street,
+          building: _addrBuildingCtrl.text.trim().isEmpty
+              ? null
+              : _addrBuildingCtrl.text.trim(),
+          floor: _addrFloorCtrl.text.trim().isEmpty
+              ? null
+              : _addrFloorCtrl.text.trim(),
+          apartment: _addrAptCtrl.text.trim().isEmpty
+              ? null
+              : _addrAptCtrl.text.trim(),
+          landmark: _addrLandmarkCtrl.text.trim().isEmpty
+              ? null
+              : _addrLandmarkCtrl.text.trim(),
+        );
+    if (addr != null) {
+      widget.onAddressChanged(addr);
+      for (final c in [
+        _addrLabelCtrl, _addrStreetCtrl, _addrBuildingCtrl,
+        _addrFloorCtrl, _addrAptCtrl, _addrLandmarkCtrl,
+      ]) { c.clear(); }
+      setState(() { _showAddressForm = false; _savingAddress = false; });
+    } else {
+      setState(() => _savingAddress = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final deliveryFee = selectedZone?.deliveryFee ?? 0;
-    final total = (subtotal + deliveryFee - discount).clamp(0, double.infinity);
+    final deliveryFee = widget.selectedZone?.userPaidDeliveryFees ?? 0;
+    final total =
+        (widget.subtotal + deliveryFee - widget.discount).clamp(0, double.infinity);
 
     return ListView(
       padding: EdgeInsets.all(16.r),
       children: [
         // Branch selector
-        Text(
-          'Branch *',
-          style: GoogleFonts.nunito(
-            fontSize: Responsive.sp(context, 13),
-            fontWeight: FontWeight.w700,
-            color: AppColors.textMid,
-          ),
-        ),
+        Text('Branch *',
+            style: GoogleFonts.nunito(
+                fontSize: Responsive.sp(context, 13),
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMid)),
         SizedBox(height: 6.h),
         BlocBuilder<BranchesCubit, BranchesState>(
           builder: (context, state) {
-            final branches = state.branches.where((b) => b.isActive).toList();
+            final branches =
+                state.branches.where((b) => b.isActive).toList();
             return Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
+              padding:
+                  EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: AppBorderRadius.r12,
@@ -1104,28 +1678,22 @@ class _Step2OrderDetails extends StatelessWidget {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<BranchModel>(
-                  value: selectedBranch,
+                  value: widget.selectedBranch,
                   isExpanded: true,
-                  hint: Text(
-                    'Select branch',
-                    style: GoogleFonts.nunito(
-                      fontSize: Responsive.sp(context, 13),
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                  items: branches.map((b) {
-                    return DropdownMenuItem(
-                      value: b,
-                      child: Text(
-                        b.name,
-                        style: GoogleFonts.nunito(
+                  hint: Text('Select branch',
+                      style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 13),
-                          color: AppColors.textDark,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: onBranchChanged,
+                          color: AppColors.textLight)),
+                  items: branches
+                      .map((b) => DropdownMenuItem(
+                            value: b,
+                            child: Text(b.name,
+                                style: GoogleFonts.nunito(
+                                    fontSize: Responsive.sp(context, 13),
+                                    color: AppColors.textDark)),
+                          ))
+                      .toList(),
+                  onChanged: widget.onBranchChanged,
                 ),
               ),
             );
@@ -1134,64 +1702,99 @@ class _Step2OrderDetails extends StatelessWidget {
         SizedBox(height: 14.h),
         // Customer address picker
         BlocBuilder<CustomersCubit, CustomersState>(
-          builder: (context, state) {
-            final addresses = state.customerAddresses;
-            if (addresses.isEmpty) return const SizedBox.shrink();
+          builder: (context, cusState) {
+            final addresses = cusState.customerAddresses;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Delivery Address',
-                  style: GoogleFonts.nunito(
-                    fontSize: Responsive.sp(context, 13),
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textMid,
-                  ),
+                Row(
+                  children: [
+                    Text('Delivery Address',
+                        style: GoogleFonts.nunito(
+                            fontSize: Responsive.sp(context, 13),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textMid)),
+                    const Spacer(),
+                    if (widget.customerId != null)
+                      GestureDetector(
+                        onTap: () => setState(
+                            () => _showAddressForm = !_showAddressForm),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _showAddressForm
+                                  ? Icons.close_rounded
+                                  : Icons.add_rounded,
+                              size: 16.r,
+                              color: AppColors.primaryDeep,
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              _showAddressForm ? 'Cancel' : 'New Address',
+                              style: GoogleFonts.nunito(
+                                  fontSize: Responsive.sp(context, 12),
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryDeep),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(height: 6.h),
+                // Existing addresses
                 ...addresses.map((addr) {
-                  final selected = selectedAddress?.id == addr.id;
+                  final selected = widget.selectedAddress?.id == addr.id;
                   return GestureDetector(
-                    onTap: () => onAddressChanged(selected ? null : addr),
+                    onTap: () =>
+                        widget.onAddressChanged(selected ? null : addr),
                     child: Container(
                       margin: EdgeInsets.only(bottom: 6.h),
-                      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 14.w, vertical: 10.h),
                       decoration: BoxDecoration(
-                        color: selected ? AppColors.primaryMist : AppColors.white,
+                        color: selected
+                            ? AppColors.primaryMist
+                            : AppColors.white,
                         borderRadius: AppBorderRadius.r12,
                         border: Border.all(
-                          color: selected ? AppColors.primaryMid : AppColors.border,
+                          color: selected
+                              ? AppColors.primaryMid
+                              : AppColors.border,
                           width: selected ? 1.5 : 1,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            addr.isDefault ? Icons.home_rounded : Icons.location_on_outlined,
+                            addr.isDefault
+                                ? Icons.home_rounded
+                                : Icons.location_on_outlined,
                             size: 18.r,
-                            color: selected ? AppColors.primaryDeep : AppColors.textLight,
+                            color: selected
+                                ? AppColors.primaryDeep
+                                : AppColors.textLight,
                           ),
                           SizedBox(width: 10.w),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  addr.displayTitle,
-                                  style: GoogleFonts.nunito(
-                                    fontSize: Responsive.sp(context, 13),
-                                    fontWeight: FontWeight.w700,
-                                    color: selected ? AppColors.primaryDeep : AppColors.textDark,
-                                  ),
-                                ),
-                                if (addr.displaySubtitle.isNotEmpty)
-                                  Text(
-                                    addr.displaySubtitle,
+                                Text(addr.displayTitle,
                                     style: GoogleFonts.nunito(
-                                      fontSize: Responsive.sp(context, 11),
-                                      color: AppColors.textLight,
-                                    ),
-                                  ),
+                                        fontSize:
+                                            Responsive.sp(context, 13),
+                                        fontWeight: FontWeight.w700,
+                                        color: selected
+                                            ? AppColors.primaryDeep
+                                            : AppColors.textDark)),
+                                if (addr.displaySubtitle.isNotEmpty)
+                                  Text(addr.displaySubtitle,
+                                      style: GoogleFonts.nunito(
+                                          fontSize:
+                                              Responsive.sp(context, 11),
+                                          color: AppColors.textLight)),
                               ],
                             ),
                           ),
@@ -1203,26 +1806,102 @@ class _Step2OrderDetails extends StatelessWidget {
                     ),
                   );
                 }),
+                // New address form
+                if (_showAddressForm) ...[
+                  SizedBox(height: 6.h),
+                  Container(
+                    padding: EdgeInsets.all(14.r),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: AppBorderRadius.r12,
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('New Address',
+                            style: GoogleFonts.nunito(
+                                fontSize: Responsive.sp(context, 13),
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textCharcoal)),
+                        SizedBox(height: 10.h),
+                        _AddrField(ctrl: _addrLabelCtrl, label: 'Label', hint: 'e.g. Home, Work'),
+                        SizedBox(height: 8.h),
+                        _AddrField(ctrl: _addrStreetCtrl, label: 'Street *', hint: 'Street name / area'),
+                        SizedBox(height: 8.h),
+                        Row(children: [
+                          Expanded(child: _AddrField(ctrl: _addrBuildingCtrl, label: 'Building', hint: 'No.')),
+                          SizedBox(width: 8.w),
+                          Expanded(child: _AddrField(ctrl: _addrFloorCtrl, label: 'Floor', hint: 'No.')),
+                          SizedBox(width: 8.w),
+                          Expanded(child: _AddrField(ctrl: _addrAptCtrl, label: 'Apt', hint: 'No.')),
+                        ]),
+                        SizedBox(height: 8.h),
+                        _AddrField(ctrl: _addrLandmarkCtrl, label: 'Landmark', hint: 'Near…'),
+                        SizedBox(height: 12.h),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 44.h,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryDeep,
+                              foregroundColor: AppColors.white,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: AppBorderRadius.r12),
+                              elevation: 0,
+                            ),
+                            onPressed: _savingAddress
+                                ? null
+                                : () => _saveAddress(context),
+                            child: _savingAddress
+                                ? SizedBox(
+                                    width: 18.r,
+                                    height: 18.r,
+                                    child: const CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.white))
+                                : Text('Save & Use Address',
+                                    style: GoogleFonts.nunito(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 SizedBox(height: 8.h),
               ],
             );
           },
         ),
         // Delivery zone
-        Text(
-          'Delivery Zone',
-          style: GoogleFonts.nunito(
-            fontSize: Responsive.sp(context, 13),
-            fontWeight: FontWeight.w700,
-            color: AppColors.textMid,
-          ),
-        ),
+        Text('Delivery Zone',
+            style: GoogleFonts.nunito(
+                fontSize: Responsive.sp(context, 13),
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMid)),
         SizedBox(height: 6.h),
         BlocBuilder<DeliveryZonesCubit, DeliveryZonesState>(
-          builder: (context, state) {
-            final zones = state.zones.where((z) => z.isActive).toList();
+          builder: (context, zoneState) {
+            // Show zones belonging to the selected branch, plus unassigned zones.
+            // If no branch is selected yet, show all active zones.
+            final allActive = zoneState.zones.where((z) => z.isActive).toList();
+            final zones = widget.selectedBranch == null
+                ? allActive
+                : allActive
+                    .where((z) =>
+                        z.branchId == null ||
+                        z.branchId == widget.selectedBranch!.id)
+                    .toList();
+
+            // If the currently selected zone is no longer valid, clear it.
+            final currentZoneValid =
+                widget.selectedZone == null || zones.any((z) => z.id == widget.selectedZone!.id);
+
             return Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
+              padding:
+                  EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: AppBorderRadius.r12,
@@ -1230,113 +1909,104 @@ class _Step2OrderDetails extends StatelessWidget {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<DeliveryZoneModel>(
-                  value: selectedZone,
+                  value: currentZoneValid ? widget.selectedZone : null,
                   isExpanded: true,
-                  hint: Text(
-                    'Select delivery zone',
-                    style: GoogleFonts.nunito(
-                      fontSize: Responsive.sp(context, 13),
-                      color: AppColors.textLight,
-                    ),
-                  ),
+                  hint: Text('Select delivery zone',
+                      style: GoogleFonts.nunito(
+                          fontSize: Responsive.sp(context, 13),
+                          color: AppColors.textLight)),
                   items: [
                     DropdownMenuItem<DeliveryZoneModel>(
                       value: null,
-                      child: Text(
-                        'No delivery zone',
-                        style: GoogleFonts.nunito(
-                          fontSize: Responsive.sp(context, 13),
-                          color: AppColors.textLight,
-                        ),
-                      ),
-                    ),
-                    ...zones.map((z) {
-                      return DropdownMenuItem(
-                        value: z,
-                        child: Text(
-                          '${z.name} — EGP ${z.deliveryFee.toStringAsFixed(0)}',
+                      child: Text('No delivery zone',
                           style: GoogleFonts.nunito(
-                            fontSize: Responsive.sp(context, 13),
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      );
-                    }),
+                              fontSize: Responsive.sp(context, 13),
+                              color: AppColors.textLight)),
+                    ),
+                    ...zones.map((z) => DropdownMenuItem(
+                          value: z,
+                          child: Text(
+                              '${z.name} — EGP ${z.userPaidDeliveryFees.toStringAsFixed(0)}',
+                              style: GoogleFonts.nunito(
+                                  fontSize: Responsive.sp(context, 13),
+                                  color: AppColors.textDark)),
+                        )),
                   ],
-                  onChanged: onZoneChanged,
+                  onChanged: (zone) {
+                    widget.onZoneChanged(zone);
+                    // Auto-set branch from zone when the zone has a branch assignment.
+                    if (zone?.branchId != null) {
+                      final branch = context
+                          .read<BranchesCubit>()
+                          .state
+                          .branches
+                          .firstWhere(
+                            (b) => b.id == zone!.branchId,
+                            orElse: () => widget.selectedBranch!,
+                          );
+                      widget.onBranchChanged(branch);
+                    }
+                  },
                 ),
               ),
             );
           },
         ),
         SizedBox(height: 14.h),
-        // Discount
         _FormField(
-          controller: discountCtrl,
+          controller: widget.discountCtrl,
           label: 'Discount (EGP)',
           hint: '0',
           keyboardType: TextInputType.number,
           onChanged: (v) {
             final parsed = double.tryParse(v) ?? 0;
-            onDiscountChanged(parsed);
+            widget.onDiscountChanged(parsed);
           },
         ),
         SizedBox(height: 14.h),
-        // Notes
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Order Notes',
-              style: GoogleFonts.nunito(
-                fontSize: Responsive.sp(context, 13),
-                fontWeight: FontWeight.w700,
-                color: AppColors.textMid,
-              ),
-            ),
+            Text('Order Notes',
+                style: GoogleFonts.nunito(
+                    fontSize: Responsive.sp(context, 13),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textMid)),
             SizedBox(height: 6.h),
             TextField(
-              controller: notesCtrl,
+              controller: widget.notesCtrl,
               maxLines: 3,
               style: GoogleFonts.nunito(
-                fontSize: Responsive.sp(context, 13),
-                color: AppColors.textDark,
-              ),
+                  fontSize: Responsive.sp(context, 13),
+                  color: AppColors.textDark),
               decoration: InputDecoration(
                 hintText: 'Any special instructions…',
                 hintStyle: GoogleFonts.nunito(
-                  fontSize: Responsive.sp(context, 13),
-                  color: AppColors.textLight,
-                ),
+                    fontSize: Responsive.sp(context, 13),
+                    color: AppColors.textLight),
                 filled: true,
                 fillColor: AppColors.white,
                 contentPadding: const EdgeInsets.all(12),
                 border: OutlineInputBorder(
-                  borderRadius: AppBorderRadius.r12,
-                  borderSide: BorderSide(color: AppColors.border),
-                ),
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide: BorderSide(color: AppColors.border)),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: AppBorderRadius.r12,
-                  borderSide: BorderSide(color: AppColors.border),
-                ),
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide: BorderSide(color: AppColors.border)),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: AppBorderRadius.r12,
-                  borderSide: BorderSide(color: AppColors.primaryMid, width: 2),
-                ),
+                    borderRadius: AppBorderRadius.r12,
+                    borderSide:
+                        BorderSide(color: AppColors.primaryMid, width: 2)),
               ),
             ),
           ],
         ),
         SizedBox(height: 14.h),
-        // Payment method
-        Text(
-          'Payment Method',
-          style: GoogleFonts.nunito(
-            fontSize: Responsive.sp(context, 13),
-            fontWeight: FontWeight.w700,
-            color: AppColors.textMid,
-          ),
-        ),
+        Text('Payment Method',
+            style: GoogleFonts.nunito(
+                fontSize: Responsive.sp(context, 13),
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMid)),
         SizedBox(height: 6.h),
         Row(
           children: [
@@ -1344,21 +2014,20 @@ class _Step2OrderDetails extends StatelessWidget {
               label: 'Cash',
               icon: Icons.money_rounded,
               value: 'cash',
-              selected: paymentMethod == 'cash',
-              onTap: () => onPaymentChanged('cash'),
+              selected: widget.paymentMethod == 'cash',
+              onTap: () => widget.onPaymentChanged('cash'),
             ),
             SizedBox(width: 10.w),
             _PaymentOption(
               label: 'Instapay',
               icon: Icons.mobile_friendly_rounded,
               value: 'instapay',
-              selected: paymentMethod == 'instapay',
-              onTap: () => onPaymentChanged('instapay'),
+              selected: widget.paymentMethod == 'instapay',
+              onTap: () => widget.onPaymentChanged('instapay'),
             ),
           ],
         ),
         SizedBox(height: 20.h),
-        // Summary
         Container(
           padding: EdgeInsets.all(16.r),
           decoration: BoxDecoration(
@@ -1368,12 +2037,13 @@ class _Step2OrderDetails extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _SummaryRow('Subtotal', 'EGP ${subtotal.toStringAsFixed(2)}'),
+              _SummaryRow(
+                  'Subtotal', 'EGP ${widget.subtotal.toStringAsFixed(2)}'),
               _SummaryRow(
                   'Delivery Fee', 'EGP ${deliveryFee.toStringAsFixed(2)}'),
-              if (discount > 0)
+              if (widget.discount > 0)
                 _SummaryRow('Discount',
-                    '- EGP ${discount.toStringAsFixed(2)}',
+                    '- EGP ${widget.discount.toStringAsFixed(2)}',
                     valueColor: AppColors.error),
               Divider(color: AppColors.border, height: 16.h),
               _SummaryRow(
@@ -1387,6 +2057,44 @@ class _Step2OrderDetails extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// Compact text field used inside the new-address form
+class _AddrField extends StatelessWidget {
+  const _AddrField(
+      {required this.ctrl, required this.label, required this.hint});
+  final TextEditingController ctrl;
+  final String label;
+  final String hint;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: ctrl,
+      style: GoogleFonts.nunito(
+          fontSize: Responsive.sp(context, 13), color: AppColors.textDark),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        labelStyle: GoogleFonts.nunito(
+            fontSize: Responsive.sp(context, 12), color: AppColors.textLight),
+        isDense: true,
+        filled: true,
+        fillColor: AppColors.scaffoldBg,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        border: OutlineInputBorder(
+            borderRadius: AppBorderRadius.r8,
+            borderSide: BorderSide(color: AppColors.border)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: AppBorderRadius.r8,
+            borderSide: BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: AppBorderRadius.r8,
+            borderSide: BorderSide(color: AppColors.primaryMid, width: 2)),
+      ),
     );
   }
 }
@@ -1451,6 +2159,7 @@ class _Step3Confirm extends StatelessWidget {
   const _Step3Confirm({
     required this.customer,
     required this.cart,
+    required this.customItems,
     required this.zone,
     required this.branch,
     required this.address,
@@ -1463,6 +2172,7 @@ class _Step3Confirm extends StatelessWidget {
   });
   final Customer? customer;
   final Map<String, _CartEntry> cart;
+  final List<_CustomItem> customItems;
   final DeliveryZoneModel? zone;
   final BranchModel? branch;
   final CustomerAddress? address;
@@ -1528,32 +2238,86 @@ class _Step3Confirm extends StatelessWidget {
         SizedBox(height: 10.h),
         // Items
         _ConfirmCard(
-          title: 'Items (${cart.length})',
+          title: 'Items (${cart.length + customItems.length})',
           child: Column(
-            children: cart.values.map((e) => Padding(
-              padding: EdgeInsets.only(bottom: 8.h),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${e.product.name}${e.variant != null ? " (variant)" : ""}',
-                      style: GoogleFonts.nunito(
-                        fontSize: Responsive.sp(context, 13),
-                        color: AppColors.textCharcoal,
+            children: [
+              ...cart.values.map((e) {
+                final variantLabel = e.variant != null
+                    ? _Step1SelectProducts._variantLabel(e.product, e.variant!)
+                    : null;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          variantLabel != null
+                              ? '${e.product.name} ($variantLabel)'
+                              : e.product.name,
+                          style: GoogleFonts.nunito(
+                            fontSize: Responsive.sp(context, 13),
+                            color: AppColors.textCharcoal,
+                          ),
+                        ),
                       ),
-                    ),
+                      Text(
+                        '×${e.quantity}  EGP ${e.subtotal.toStringAsFixed(2)}',
+                        style: GoogleFonts.nunito(
+                          fontSize: Responsive.sp(context, 13),
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '×${e.quantity}  EGP ${e.subtotal.toStringAsFixed(2)}',
-                    style: GoogleFonts.nunito(
-                      fontSize: Responsive.sp(context, 13),
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                );
+              }),
+              ...customItems.map((e) => Padding(
+                    padding: EdgeInsets.only(bottom: 8.h),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Text(
+                                e.name,
+                                style: GoogleFonts.nunito(
+                                  fontSize: Responsive.sp(context, 13),
+                                  color: AppColors.textCharcoal,
+                                ),
+                              ),
+                              SizedBox(width: 6.w),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 6.w, vertical: 2.h),
+                                decoration: BoxDecoration(
+                                  color: AppColors.scaffoldBg,
+                                  borderRadius: AppBorderRadius.r8,
+                                  border: Border.all(color: AppColors.border),
+                                ),
+                                child: Text(
+                                  'custom',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: Responsive.sp(context, 10),
+                                    color: AppColors.textLight,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '×${e.quantity}  EGP ${e.subtotal.toStringAsFixed(2)}',
+                          style: GoogleFonts.nunito(
+                            fontSize: Responsive.sp(context, 13),
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            )).toList(),
+                  )),
+            ],
           ),
         ),
         SizedBox(height: 10.h),

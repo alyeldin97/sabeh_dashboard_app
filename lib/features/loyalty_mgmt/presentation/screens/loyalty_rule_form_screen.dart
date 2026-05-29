@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../data/model/loyalty_rule_model.dart';
 import '../cubits/loyalty_cubit.dart';
 
@@ -29,6 +31,8 @@ class _LoyaltyRuleFormScreenState extends State<LoyaltyRuleFormScreen> {
   TimeOfDay? _endTime;
   bool _isActive = true;
   String _ruleType = 'base_earn';
+  bool _pointsHaveExpiry = false;
+  late final TextEditingController _expiryDaysCtrl;
 
   bool get _isEdit => widget.rule != null;
 
@@ -41,8 +45,11 @@ class _LoyaltyRuleFormScreenState extends State<LoyaltyRuleFormScreen> {
         text: r != null ? r.pointsPerEgp.toString() : '1');
     _minOrderCtrl = TextEditingController(
         text: r != null ? r.minOrderValue.toStringAsFixed(0) : '0');
+    _expiryDaysCtrl = TextEditingController(
+        text: r?.pointsExpiryDays?.toString() ?? '30');
     _isActive = r?.isActive ?? true;
     _ruleType = r?.ruleType ?? 'base_earn';
+    _pointsHaveExpiry = r?.pointsHaveExpiry ?? false;
     _validFrom = r?.validFrom;
     _validUntil = r?.validUntil;
     if (r?.startTime != null) {
@@ -68,6 +75,7 @@ class _LoyaltyRuleFormScreenState extends State<LoyaltyRuleFormScreen> {
     _nameCtrl.dispose();
     _pointsCtrl.dispose();
     _minOrderCtrl.dispose();
+    _expiryDaysCtrl.dispose();
     super.dispose();
   }
 
@@ -135,6 +143,10 @@ class _LoyaltyRuleFormScreenState extends State<LoyaltyRuleFormScreen> {
     final cubit = context.read<LoyaltyCubit>();
 
     final now = DateTime.now();
+    final expiryDays = _pointsHaveExpiry
+        ? int.tryParse(_expiryDaysCtrl.text.trim())
+        : null;
+    AppLogger.d('LoyaltyRuleForm', 'submit ruleType=$_ruleType pointsHaveExpiry=$_pointsHaveExpiry expiryDays=$expiryDays');
     final baseRule = LoyaltyRuleModel(
       id: widget.rule?.id ?? '',
       name: _nameCtrl.text.trim(),
@@ -147,6 +159,8 @@ class _LoyaltyRuleFormScreenState extends State<LoyaltyRuleFormScreen> {
       validUntil: _validUntil,
       isActive: _isActive,
       createdAt: widget.rule?.createdAt ?? now,
+      pointsHaveExpiry: _pointsHaveExpiry,
+      pointsExpiryDays: expiryDays,
     );
 
     final bool ok;
@@ -296,6 +310,70 @@ class _LoyaltyRuleFormScreenState extends State<LoyaltyRuleFormScreen> {
                       : null,
                 ),
                 SizedBox(height: 20.h),
+                // Points expiry toggle
+                Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: AppBorderRadius.r12,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.timer_outlined,
+                          size: 20.r, color: AppColors.textLight),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Points Have Expiry',
+                              style: GoogleFonts.nunito(
+                                fontSize: Responsive.sp(context, 14),
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            Text(
+                              _pointsHaveExpiry
+                                  ? 'Points expire after the set days'
+                                  : 'Points never expire (permanent)',
+                              style: GoogleFonts.nunito(
+                                fontSize: Responsive.sp(context, 11),
+                                color: AppColors.textLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _pointsHaveExpiry,
+                        onChanged: (v) => setState(() => _pointsHaveExpiry = v),
+                        activeThumbColor: AppColors.primaryDeep,
+                      ),
+                    ],
+                  ),
+                ),
+                if (_pointsHaveExpiry) ...[
+                  SizedBox(height: 12.h),
+                  _FieldLabel('Points Expiry (days after earning)'),
+                  SizedBox(height: 8.h),
+                  _buildTextField(
+                    controller: _expiryDaysCtrl,
+                    hint: '30',
+                    icon: Icons.hourglass_bottom_rounded,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (!_pointsHaveExpiry) return null;
+                      final d = int.tryParse(v ?? '');
+                      if (d == null || d <= 0) return 'Enter a positive number of days';
+                      return null;
+                    },
+                  ),
+                ],
+                SizedBox(height: 20.h),
+                // Active toggle
                 Container(
                   padding:
                       EdgeInsets.symmetric(horizontal: 16, vertical: 4.h),

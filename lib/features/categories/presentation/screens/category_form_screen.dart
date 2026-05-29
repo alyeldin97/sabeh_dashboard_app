@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../branches/presentation/cubits/branches_cubit.dart';
 import '../../data/model/category.dart';
 import '../cubits/categories_cubit.dart';
@@ -55,7 +56,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedBranchIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Select at least one branch.', style: GoogleFonts.nunito())),
+        SnackBar(content: Text(AppLocalizations.of(context)!.categoryFormSelectBranch, style: GoogleFonts.nunito())),
       );
       return;
     }
@@ -98,7 +99,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
         title: Text(
-          _isEdit ? 'Edit Category' : 'New Category',
+          _isEdit ? AppLocalizations.of(context)!.categoryFormEditTitle : AppLocalizations.of(context)!.categoryFormNewTitle,
           style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 18), fontWeight: FontWeight.w700, color: AppColors.white),
         ),
         actions: [
@@ -106,7 +107,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
             onPressed: _saving ? null : _submit,
             child: _saving
                 ? SizedBox(width: 20.r, height: 20.r, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text('Save', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 15), fontWeight: FontWeight.w700, color: AppColors.white)),
+                : Text(AppLocalizations.of(context)!.categoryFormSave, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 15), fontWeight: FontWeight.w700, color: AppColors.white)),
           ),
           const SizedBox(width: 8),
         ],
@@ -120,7 +121,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
               padding: EdgeInsets.all(isWeb ? 24 : 16.r),
               children: [
                 if (_showBranchPicker) ...[
-                  _section(context, 'Branches'),
+                  _section(context, AppLocalizations.of(context)!.categoryFormBranches),
                   SizedBox(height: 12.h),
                   _BranchMultiSelect(
                     selectedIds: _selectedBranchIds,
@@ -128,23 +129,23 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                   ),
                   SizedBox(height: 16.h),
                 ],
-                _section(context, 'Name'),
+                _section(context, AppLocalizations.of(context)!.categoryFormName),
                 SizedBox(height: 12.h),
-                _field(context, _name, 'Category Name (English)', required: true),
+                _field(context, _name, AppLocalizations.of(context)!.categoryFormNameEn, required: true),
                 SizedBox(height: 12.h),
-                _field(context, _nameAr, 'Category Name (Arabic)'),
+                _field(context, _nameAr, AppLocalizations.of(context)!.categoryFormNameAr),
                 SizedBox(height: 16.h),
-                _section(context, 'Media'),
+                _section(context, AppLocalizations.of(context)!.categoryFormMedia),
                 SizedBox(height: 12.h),
-                _field(context, _imageUrl, 'Cover Image URL', keyboard: TextInputType.url),
+                _field(context, _imageUrl, AppLocalizations.of(context)!.categoryFormCoverUrl, keyboard: TextInputType.url),
                 SizedBox(height: 16.h),
-                _section(context, 'Visibility'),
+                _section(context, AppLocalizations.of(context)!.categoryFormVisibility),
                 SizedBox(height: 12.h),
                 Container(
                   decoration: BoxDecoration(color: AppColors.white, borderRadius: AppBorderRadius.r12),
                   child: SwitchListTile.adaptive(
-                    title: Text('Active', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), fontWeight: FontWeight.w600, color: AppColors.textCharcoal)),
-                    subtitle: Text('Visible to customers', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight)),
+                    title: Text(AppLocalizations.of(context)!.categoryFormActive, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), fontWeight: FontWeight.w600, color: AppColors.textCharcoal)),
+                    subtitle: Text(AppLocalizations.of(context)!.categoryFormActiveSubtitle, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight)),
                     value: _isActive,
                     activeThumbColor: AppColors.primaryDeep,
                     activeTrackColor: AppColors.primaryMid,
@@ -171,7 +172,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
     return TextFormField(
       controller: ctrl,
       keyboardType: keyboard,
-      validator: required ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null : null,
+      validator: required ? (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.categoryFormRequired : null : null,
       style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), color: AppColors.textDark),
       decoration: InputDecoration(
         labelText: label,
@@ -202,7 +203,7 @@ class _BranchMultiSelect extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: AppColors.white, borderRadius: AppBorderRadius.r12),
-        child: Text('No branches found.', style: GoogleFonts.nunito(color: AppColors.textLight)),
+        child: Text(AppLocalizations.of(context)!.categoryFormNoBranches, style: GoogleFonts.nunito(color: AppColors.textLight)),
       );
     }
 
@@ -218,7 +219,7 @@ class _BranchMultiSelect extends StatelessWidget {
         children: [
           // Select All toggle
           _BranchCheckRow(
-            label: 'All Branches',
+            label: AppLocalizations.of(context)!.categoryFormAllBranches,
             icon: Icons.store_rounded,
             isSelected: allSelected,
             isBold: true,

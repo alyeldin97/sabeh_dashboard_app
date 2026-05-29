@@ -7,6 +7,7 @@ import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../orders/data/model/order_model.dart';
 import '../../../branches/presentation/cubits/branches_cubit.dart';
 import '../../../delivery_zones/presentation/cubits/delivery_zones_cubit.dart';
@@ -87,7 +88,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 icon: Icon(Icons.add_shopping_cart_rounded,
                     color: AppColors.white, size: 18.r),
                 label: Text(
-                  'Create Order',
+                  AppLocalizations.of(context)!.customerDetailCreateOrder,
                   style: GoogleFonts.nunito(
                     fontSize: Responsive.sp(context, 13),
                     fontWeight: FontWeight.w700,
@@ -144,7 +145,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             backgroundColor: AppColors.primaryDeep,
             icon: Icon(Icons.add_rounded, color: AppColors.white, size: 20.r),
             label: Text(
-              'Create Order',
+              AppLocalizations.of(context)!.customerDetailCreateOrder,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 13),
                 fontWeight: FontWeight.w700,
@@ -214,7 +215,7 @@ class _ProfileCard extends StatelessWidget {
                           borderRadius: AppBorderRadius.r8,
                         ),
                         child: Text(
-                          'Blocked',
+                          AppLocalizations.of(context)!.customerDetailBlocked,
                           style: GoogleFonts.nunito(
                             fontSize: Responsive.sp(context, 11),
                             fontWeight: FontWeight.w700,
@@ -266,7 +267,7 @@ class _ProfileCard extends StatelessWidget {
                           size: 13.r, color: AppColors.textLight),
                       const SizedBox(width: 4),
                       Text(
-                        'Joined ${DateFormat('MMM d, yyyy').format(customer.createdAt!.toLocal())}',
+                        AppLocalizations.of(context)!.customerDetailJoined(DateFormat('MMM d, yyyy').format(customer.createdAt!.toLocal())),
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 12),
                           color: AppColors.textLight,
@@ -292,7 +293,7 @@ class _ProfileCard extends StatelessWidget {
                             size: 13.r, color: AppColors.primaryMid),
                         const SizedBox(width: 4),
                         Text(
-                          'Ref: ${customer.referralCode}',
+                          AppLocalizations.of(context)!.customerDetailRef(customer.referralCode!),
                           style: GoogleFonts.nunito(
                             fontSize: Responsive.sp(context, 12),
                             fontWeight: FontWeight.w600,
@@ -346,7 +347,7 @@ class _LoyaltyCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Loyalty Points',
+                  AppLocalizations.of(context)!.customerDetailLoyaltyPoints,
                   style: GoogleFonts.nunito(
                     fontSize: Responsive.sp(context, 13),
                     color: AppColors.primaryPale,
@@ -363,7 +364,7 @@ class _LoyaltyCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'points',
+                  AppLocalizations.of(context)!.customerDetailPoints,
                   style: GoogleFonts.nunito(
                     fontSize: Responsive.sp(context, 13),
                     color: AppColors.primaryPale,
@@ -376,7 +377,7 @@ class _LoyaltyCard extends StatelessWidget {
             onPressed: () => _showAdjustSheet(context),
             icon: Icon(Icons.tune_rounded, size: 16.r),
             label: Text(
-              'Adjust',
+              AppLocalizations.of(context)!.customerDetailAdjust,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 13),
                 fontWeight: FontWeight.w700,
@@ -424,7 +425,7 @@ class _LoyaltyCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Adjust Loyalty Points',
+                    AppLocalizations.of(context)!.customerDetailAdjustTitle,
                     style: GoogleFonts.nunito(
                       fontSize: Responsive.sp(context, 17),
                       fontWeight: FontWeight.w800,
@@ -452,7 +453,7 @@ class _LoyaltyCard extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                '+ Add Points',
+                                AppLocalizations.of(context)!.customerDetailAddPoints,
                                 style: GoogleFonts.nunito(
                                   fontSize: Responsive.sp(context, 14),
                                   fontWeight: FontWeight.w700,
@@ -484,7 +485,7 @@ class _LoyaltyCard extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                '- Deduct Points',
+                                AppLocalizations.of(context)!.customerDetailDeductPoints,
                                 style: GoogleFonts.nunito(
                                   fontSize: Responsive.sp(context, 14),
                                   fontWeight: FontWeight.w700,
@@ -502,14 +503,14 @@ class _LoyaltyCard extends StatelessWidget {
                   SizedBox(height: 16.h),
                   _SheetField(
                     controller: amountCtrl,
-                    label: 'Amount',
+                    label: AppLocalizations.of(context)!.customerDetailAmount,
                     hint: 'e.g. 50',
                     keyboardType: TextInputType.number,
                   ),
                   SizedBox(height: 12.h),
                   _SheetField(
                     controller: reasonCtrl,
-                    label: 'Reason / Description',
+                    label: AppLocalizations.of(context)!.customerDetailReason,
                     hint: 'e.g. Compensation for delay',
                   ),
                   SizedBox(height: 20.h),
@@ -535,7 +536,7 @@ class _LoyaltyCard extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: Text(
-                        'Confirm',
+                        AppLocalizations.of(context)!.customerDetailConfirm,
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 15),
                           fontWeight: FontWeight.w700,
@@ -579,7 +580,7 @@ class _NotesCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Internal Notes',
+                AppLocalizations.of(context)!.customerDetailInternalNotes,
                 style: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 15),
                   fontWeight: FontWeight.w700,
@@ -608,7 +609,7 @@ class _NotesCard extends StatelessWidget {
                 color: AppColors.textDark,
               ),
               decoration: InputDecoration(
-                hintText: 'Add internal notes about this customer…',
+                hintText: AppLocalizations.of(context)!.customerDetailNotesHint,
                 hintStyle: GoogleFonts.nunito(
                   fontSize: Responsive.sp(context, 13),
                   color: AppColors.textLight,
@@ -645,7 +646,7 @@ class _NotesCard extends StatelessWidget {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Save Notes',
+                  AppLocalizations.of(context)!.customerDetailSaveNotes,
                   style: GoogleFonts.nunito(
                     fontSize: Responsive.sp(context, 13),
                     fontWeight: FontWeight.w700,
@@ -657,7 +658,7 @@ class _NotesCard extends StatelessWidget {
             Text(
               customer.internalNotes?.isNotEmpty == true
                   ? customer.internalNotes!
-                  : 'No notes yet',
+                  : AppLocalizations.of(context)!.customerDetailNoNotes,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 13),
                 color: customer.internalNotes?.isNotEmpty == true
@@ -692,7 +693,7 @@ class _OrdersSection extends StatelessWidget {
         Row(
           children: [
             Text(
-              'Past Orders',
+              AppLocalizations.of(context)!.customerDetailPastOrders,
               style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 16),
                 fontWeight: FontWeight.w800,
@@ -736,7 +737,7 @@ class _OrdersSection extends StatelessWidget {
                         size: 40.r, color: AppColors.primaryLight),
                     SizedBox(height: 8.h),
                     Text(
-                      'No orders yet',
+                      AppLocalizations.of(context)!.customerDetailNoOrders,
                       style: GoogleFonts.nunito(
                         fontSize: Responsive.sp(context, 14),
                         color: AppColors.textLight,
@@ -763,6 +764,7 @@ class _OrderRow extends StatelessWidget {
       case OrderStatus.pending:        return const Color(0xFFFFF3E0);
       case OrderStatus.confirmed:      return const Color(0xFFE3F2FD);
       case OrderStatus.preparing:      return const Color(0xFFF3E5F5);
+      case OrderStatus.prepared:       return const Color(0xFFE0F2F1);
       case OrderStatus.outForDelivery: return const Color(0xFFE8F5E9);
       case OrderStatus.delivered:      return AppColors.primaryMist;
       case OrderStatus.cancelled:      return const Color(0xFFFFEBEE);
@@ -774,6 +776,7 @@ class _OrderRow extends StatelessWidget {
       case OrderStatus.pending:        return const Color(0xFFE65100);
       case OrderStatus.confirmed:      return const Color(0xFF1565C0);
       case OrderStatus.preparing:      return const Color(0xFF6A1B9A);
+      case OrderStatus.prepared:       return const Color(0xFF00695C);
       case OrderStatus.outForDelivery: return AppColors.primaryMid;
       case OrderStatus.delivered:      return AppColors.primaryDeep;
       case OrderStatus.cancelled:      return AppColors.error;
@@ -813,7 +816,7 @@ class _OrderRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '#${order.id.substring(0, 8).toUpperCase()}',
+                    '#${order.orderNumber}',
                     style: GoogleFonts.nunito(
                       fontSize: Responsive.sp(context, 13),
                       fontWeight: FontWeight.w700,

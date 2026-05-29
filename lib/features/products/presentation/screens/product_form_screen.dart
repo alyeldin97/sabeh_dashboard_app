@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../branches/presentation/cubits/branches_cubit.dart';
 import '../../../categories/presentation/cubits/categories_cubit.dart';
 import '../../data/model/product.dart';
@@ -89,6 +90,19 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late ProductType _type;
   late bool _isActive;
   late bool _trackInventory;
+  late bool _isBestSeller;
+
+  // Weight config
+  late final TextEditingController _minWeight;
+  late final TextEditingController _maxWeight;
+  late final TextEditingController _weightStep;
+  late final TextEditingController _bulkDiscount;
+
+  // COGS
+  late final TextEditingController _cogsPercent;
+
+  // Related products
+  late List<String> _relatedProductIds;
 
   // Branches & categories
   late List<String> _selectedBranchIds;
@@ -122,6 +136,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _type        = p?.type ?? ProductType.fixed;
     _isActive    = p?.isActive ?? true;
     _trackInventory = p?.trackInventory ?? false;
+    _isBestSeller = p?.isBestSeller ?? false;
+
+    _minWeight    = TextEditingController(text: '${p?.minWeightGrams ?? 250}');
+    _maxWeight    = TextEditingController(text: '${p?.maxWeightGrams ?? 5000}');
+    _weightStep   = TextEditingController(text: '${p?.weightStepGrams ?? 250}');
+    _bulkDiscount = TextEditingController(text: p != null ? p.bulkDiscountPct.toStringAsFixed(1) : '0.0');
+    _cogsPercent  = TextEditingController(text: p?.cogsPercent != null ? p!.cogsPercent!.toStringAsFixed(1) : '');
+    _relatedProductIds = List<String>.from(p?.relatedProductIds ?? []);
 
     _selectedBranchIds  = widget.branchId != null ? [widget.branchId!] : List.of(p?.branchIds ?? []);
     _selectedCategoryId = p?.categoryIds.isNotEmpty == true ? p!.categoryIds.first : null;
@@ -197,6 +219,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   void dispose() {
     _name.dispose(); _description.dispose(); _price.dispose();
     _compareAt.dispose(); _sortOrder.dispose(); _loyaltyPts.dispose();
+    _minWeight.dispose(); _maxWeight.dispose(); _weightStep.dispose();
+    _bulkDiscount.dispose(); _cogsPercent.dispose();
     for (final c in _imageCtrls) { c.dispose(); }
     for (final o in _options) { o.dispose(); }
     for (final v in _variants) { v.dispose(); }
@@ -315,16 +339,22 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     setState(() => _saving = true);
 
     final fields = {
-      'name':             _name.text.trim(),
-      'description':      _description.text.trim().isEmpty ? null : _description.text.trim(),
-      'price':            double.tryParse(_price.text) ?? 0,
-      'compare_at_price': _compareAt.text.trim().isEmpty ? null : double.tryParse(_compareAt.text),
-      'product_type':     _type.value,
-      'is_active':        _isActive,
-      'track_inventory':  _trackInventory,
-      'sort_order':       int.tryParse(_sortOrder.text) ?? 0,
-      'images':           _imageCtrls.map((c) => c.text.trim()).where((u) => u.isNotEmpty).toList(),
-      'loyalty_points':   int.tryParse(_loyaltyPts.text) ?? 0,
+      'name':               _name.text.trim(),
+      'description':        _description.text.trim().isEmpty ? null : _description.text.trim(),
+      'price':              double.tryParse(_price.text) ?? 0,
+      'compare_at_price':   _compareAt.text.trim().isEmpty ? null : double.tryParse(_compareAt.text),
+      'product_type':       _type.value,
+      'is_active':          _isActive,
+      'track_inventory':    _trackInventory,
+      'is_best_seller':     _isBestSeller,
+      'sort_order':         int.tryParse(_sortOrder.text) ?? 0,
+      'images':             _imageCtrls.map((c) => c.text.trim()).where((u) => u.isNotEmpty).toList(),
+      'loyalty_points':     int.tryParse(_loyaltyPts.text) ?? 0,
+      'min_weight_grams':   int.tryParse(_minWeight.text) ?? 250,
+      'max_weight_grams':   int.tryParse(_maxWeight.text) ?? 5000,
+      'weight_step_grams':  int.tryParse(_weightStep.text) ?? 250,
+      'bulk_discount_pct':  double.tryParse(_bulkDiscount.text) ?? 0,
+      'cogs_percent':       _cogsPercent.text.trim().isEmpty ? null : double.tryParse(_cogsPercent.text),
     };
 
     // Build options payload: [{name, values: [text]}]
@@ -378,6 +408,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         options: optionsPayload,
         variants: variantsPayload,
         productInventory: productInventory,
+        relatedIds: _relatedProductIds,
         branchId: widget.branchId,
       );
     } else {
@@ -388,6 +419,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         options: optionsPayload,
         variants: variantsPayload,
         productInventory: productInventory,
+        relatedIds: _relatedProductIds,
         branchId: widget.branchId,
       );
     }
@@ -408,13 +440,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isWeb = Responsive.isWeb(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
         title: Text(
-          _isEdit ? 'Edit Product' : 'New Product',
+          _isEdit ? l10n.productFormEditTitle : l10n.productFormNewTitle,
           style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 18), fontWeight: FontWeight.w700, color: AppColors.white),
         ),
         actions: [
@@ -422,7 +455,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             onPressed: _saving ? null : _submit,
             child: _saving
                 ? SizedBox(width: 20.r, height: 20.r, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text('Save', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 15), fontWeight: FontWeight.w700, color: AppColors.white)),
+                : Text(l10n.productFormSave, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 15), fontWeight: FontWeight.w700, color: AppColors.white)),
           ),
           const SizedBox(width: 8),
         ],
@@ -494,6 +527,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       ]),
                 SizedBox(height: 20.h),
 
+                // ── WEIGHT CONFIG (weight type only) ───
+                if (_type == ProductType.weight) ...[
+                  _sectionLabel('Weight Configuration'),
+                  SizedBox(height: 10.h),
+                  _weightConfigSection(),
+                  SizedBox(height: 20.h),
+                ],
+
                 // ── INVENTORY (no-variant products only) ───
                 _sectionLabel('Inventory'),
                 SizedBox(height: 8.h),
@@ -507,6 +548,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   _variantsSection(),
                   SizedBox(height: 20.h),
                 ],
+
+                // ── COGS & RELATED ───
+                _sectionLabel('Financials & Related'),
+                SizedBox(height: 10.h),
+                _cogsSection(),
+                SizedBox(height: 12.h),
+                _relatedProductsSection(),
+                SizedBox(height: 20.h),
 
                 // ── META ───
                 _sectionLabel('Meta'),
@@ -646,7 +695,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         OutlinedButton.icon(
           onPressed: _addOption,
           icon: const Icon(Icons.add, size: 16),
-          label: Text('Add Option', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), fontWeight: FontWeight.w600)),
+          label: Text(AppLocalizations.of(context)!.productFormAddOption, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryDeep,
             side: BorderSide(color: AppColors.primaryDeep),
@@ -950,7 +999,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           ),
           if (_trackInventory && v.inventoryCtrl.isNotEmpty) ...[
             SizedBox(height: 8.h),
-            Text('Stock:', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 11), color: AppColors.textLight)),
+            Text(AppLocalizations.of(context)!.productFormStock, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 11), color: AppColors.textLight)),
             SizedBox(height: 6.h),
             Wrap(
               spacing: 8,
@@ -984,6 +1033,236 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  // ── Weight config section ─────────────────────────────────────────────────
+
+  Widget _weightConfigSection() {
+    final isWeb = Responsive.isWeb(context);
+    final minW = int.tryParse(_minWeight.text) ?? 250;
+    final maxW = int.tryParse(_maxWeight.text) ?? 5000;
+    final step = (int.tryParse(_weightStep.text) ?? 250).clamp(1, 999999);
+    final discPerStep = double.tryParse(_bulkDiscount.text) ?? 0;
+    final basePrice = double.tryParse(_price.text) ?? 0;
+
+    double previewAt(int grams) {
+      final pricePerGram = basePrice / 1000;
+      final steps = ((grams - minW) / step).floorToDouble();
+      final totalDiscount = (steps * discPerStep / 100).clamp(0.0, 1.0);
+      return pricePerGram * grams * (1 - totalDiscount);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: AppBorderRadius.r12,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Price field = price per kg (EGP/kg). Customer selects weight via slider.',
+            style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 11), color: AppColors.textLight),
+          ),
+          SizedBox(height: 12.h),
+          // Weight range row
+          Row(children: [
+            Expanded(child: _field(_minWeight, 'Min Weight (g)', keyboard: TextInputType.number)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text('–', style: GoogleFonts.nunito(fontSize: 18, color: AppColors.textLight, fontWeight: FontWeight.w600)),
+            ),
+            Expanded(child: _field(_maxWeight, 'Max Weight (g)', keyboard: TextInputType.number)),
+          ]),
+          SizedBox(height: 10.h),
+          isWeb
+              ? Row(children: [
+                  Expanded(child: _field(_weightStep, 'Step (g)', keyboard: TextInputType.number)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _field(_bulkDiscount, 'Discount % per Step', keyboard: TextInputType.number)),
+                ])
+              : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  _field(_weightStep, 'Step (g)', keyboard: TextInputType.number),
+                  SizedBox(height: 10.h),
+                  _field(_bulkDiscount, 'Discount % per Step', keyboard: TextInputType.number),
+                ]),
+          if (basePrice > 0 && maxW > minW) ...[
+            SizedBox(height: 14.h),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primaryMist,
+                borderRadius: AppBorderRadius.r8,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(AppLocalizations.of(context)!.productFormPricePreview, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 11), fontWeight: FontWeight.w700, color: AppColors.primaryDeep)),
+                  SizedBox(height: 4.h),
+                  Text(
+                    '${minW}g → EGP ${previewAt(minW).toStringAsFixed(2)}   |   '
+                    '${(minW + maxW) ~/ 2}g → EGP ${previewAt((minW + maxW) ~/ 2).toStringAsFixed(2)}   |   '
+                    '${maxW}g → EGP ${previewAt(maxW).toStringAsFixed(2)}',
+                    style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textDark),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── COGS section ──────────────────────────────────────────────────────────
+
+  Widget _cogsSection() {
+    final cogs = double.tryParse(_cogsPercent.text);
+    final margin = cogs != null ? (100 - cogs).clamp(0, 100) : null;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: AppBorderRadius.r12,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _field(_cogsPercent, 'Cost of Goods (COGS %) — optional', keyboard: TextInputType.number),
+          if (margin != null) ...[
+            SizedBox(height: 8.h),
+            Row(children: [
+              Icon(Icons.trending_up_rounded, size: 14.r, color: AppColors.primaryDeep),
+              const SizedBox(width: 6),
+              Text(
+                'Profit Margin: ${margin.toStringAsFixed(1)}%',
+                style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), fontWeight: FontWeight.w600, color: AppColors.primaryDeep),
+              ),
+            ]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Related products section ───────────────────────────────────────────────
+
+  Widget _relatedProductsSection() {
+    final allProducts = context.watch<ProductsCubit>().state.products;
+    final currentId = widget.product?.id;
+    final selectable = allProducts.where((p) => p.id != currentId && p.isActive).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: AppBorderRadius.r12,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(AppLocalizations.of(context)!.productFormRelatedProducts, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), fontWeight: FontWeight.w600, color: AppColors.textCharcoal)),
+              TextButton.icon(
+                onPressed: () => _showRelatedPicker(selectable),
+                icon: Icon(Icons.add_circle_outline, size: 16.r, color: AppColors.primaryDeep),
+                label: Text(AppLocalizations.of(context)!.productFormAdd, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 13), fontWeight: FontWeight.w600, color: AppColors.primaryDeep)),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              ),
+            ],
+          ),
+          if (_relatedProductIds.isEmpty)
+            Padding(
+              padding: EdgeInsets.only(top: 8.h),
+              child: Text(AppLocalizations.of(context)!.productFormNoRelated, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight)),
+            )
+          else ...[
+            SizedBox(height: 8.h),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: _relatedProductIds.map((id) {
+                final product = selectable.where((p) => p.id == id).firstOrNull
+                    ?? allProducts.where((p) => p.id == id).firstOrNull;
+                final name = product?.name ?? id.substring(0, 8);
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryMist,
+                    borderRadius: AppBorderRadius.full,
+                    border: Border.all(color: AppColors.primaryLight),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(name, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.primaryDeep, fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () => setState(() => _relatedProductIds.remove(id)),
+                        child: Icon(Icons.close, size: 14.r, color: AppColors.primaryMid),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showRelatedPicker(List<dynamic> selectable) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) {
+        final products = List<dynamic>.from(selectable)
+            .where((p) => !_relatedProductIds.contains((p as dynamic).id))
+            .cast<dynamic>()
+            .toList();
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          builder: (_, sc) => Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Text(AppLocalizations.of(context)!.productFormSelectRelated, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  controller: sc,
+                  itemCount: products.length,
+                  itemBuilder: (_, i) {
+                    final p = products[i];
+                    return ListTile(
+                      title: Text(p.name, style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+                      subtitle: Text(p.type.label, style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textLight)),
+                      trailing: Text('EGP ${p.price.toStringAsFixed(2)}', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.primaryDeep, fontWeight: FontWeight.w700)),
+                      onTap: () {
+                        setState(() => _relatedProductIds.add(p.id as String));
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1068,9 +1347,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   Widget _categoryDropdown() {
     return BlocBuilder<CategoriesCubit, CategoriesState>(
       builder: (_, state) {
-        final categories = state.categories;
+        final seen = <String>{};
+        final categories = state.categories.where((c) => seen.add(c.id)).toList();
+        final effectiveCategoryId = _selectedCategoryId == null || categories.any((c) => c.id == _selectedCategoryId)
+            ? _selectedCategoryId
+            : null;
         return DropdownButtonFormField<String?>(
-          initialValue: _selectedCategoryId,
+          initialValue: effectiveCategoryId,
           style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), color: AppColors.textDark),
           decoration: InputDecoration(
             labelText: 'Category',
@@ -1083,7 +1366,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           items: [
             DropdownMenuItem<String?>(
               value: null,
-              child: Text('None', style: GoogleFonts.nunito(color: AppColors.textLight)),
+              child: Text(AppLocalizations.of(context)!.productFormNone, style: GoogleFonts.nunito(color: AppColors.textLight)),
             ),
             ...categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
           ],
@@ -1097,14 +1380,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4.h),
       decoration: BoxDecoration(color: AppColors.white, borderRadius: AppBorderRadius.r12),
-      child: SwitchListTile.adaptive(
-        title: Text('Active', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), fontWeight: FontWeight.w600, color: AppColors.textCharcoal)),
-        subtitle: Text('Visible to customers', style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight)),
-        value: _isActive,
-        activeThumbColor: AppColors.primaryDeep,
-        activeTrackColor: AppColors.primaryMid,
-        onChanged: (v) => setState(() => _isActive = v),
-        contentPadding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          SwitchListTile.adaptive(
+            title: Text(AppLocalizations.of(context)!.productFormActive, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), fontWeight: FontWeight.w600, color: AppColors.textCharcoal)),
+            subtitle: Text(AppLocalizations.of(context)!.productFormActiveSubtitle, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight)),
+            value: _isActive,
+            activeThumbColor: AppColors.primaryDeep,
+            activeTrackColor: AppColors.primaryMid,
+            onChanged: (v) => setState(() => _isActive = v),
+            contentPadding: EdgeInsets.zero,
+          ),
+          SwitchListTile.adaptive(
+            title: Text(AppLocalizations.of(context)!.productFormBestSeller, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14), fontWeight: FontWeight.w600, color: AppColors.textCharcoal)),
+            subtitle: Text(AppLocalizations.of(context)!.productFormBestSellerSubtitle, style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 12), color: AppColors.textLight)),
+            value: _isBestSeller,
+            activeThumbColor: const Color(0xFFFF6B35),
+            activeTrackColor: const Color(0xFFFFAB91),
+            onChanged: (v) => setState(() => _isBestSeller = v),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ],
       ),
     );
   }
@@ -1184,7 +1480,7 @@ class _BranchMultiSelect extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: AppColors.white, borderRadius: AppBorderRadius.r12),
-        child: Text('No branches found.', style: GoogleFonts.nunito(color: AppColors.textLight)),
+        child: Text(AppLocalizations.of(context)!.productFormNoBranches, style: GoogleFonts.nunito(color: AppColors.textLight)),
       );
     }
     final allSelected = branches.every((b) => selectedIds.contains(b.id));
@@ -1193,7 +1489,7 @@ class _BranchMultiSelect extends StatelessWidget {
       child: Column(
         children: [
           _CheckRow(
-            label: 'All Branches',
+            label: AppLocalizations.of(context)!.categoryFormAllBranches,
             icon: Icons.store_rounded,
             isSelected: allSelected,
             isBold: true,

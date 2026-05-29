@@ -4,30 +4,26 @@ import 'product_variant.dart';
 
 enum ProductType {
   fixed,
-  weight,
-  customPlate;
+  weight;
 
   String get value {
     switch (this) {
-      case ProductType.fixed:       return 'fixed';
-      case ProductType.weight:      return 'weight';
-      case ProductType.customPlate: return 'custom_plate';
+      case ProductType.fixed:  return 'fixed';
+      case ProductType.weight: return 'weight';
     }
   }
 
   String get label {
     switch (this) {
-      case ProductType.fixed:       return 'Fixed Price';
-      case ProductType.weight:      return 'By Weight';
-      case ProductType.customPlate: return 'Custom Plate';
+      case ProductType.fixed:  return 'Fixed Price';
+      case ProductType.weight: return 'By Weight';
     }
   }
 
   static ProductType fromString(String v) {
     switch (v) {
-      case 'weight':       return ProductType.weight;
-      case 'custom_plate': return ProductType.customPlate;
-      default:             return ProductType.fixed;
+      case 'weight': return ProductType.weight;
+      default:       return ProductType.fixed;
     }
   }
 }
@@ -50,6 +46,21 @@ class Product extends Equatable {
   final List<ProductVariant> variants;
   final Map<String, int> inventoryByBranch;
 
+  // Weight-based pricing config
+  final int minWeightGrams;
+  final int maxWeightGrams;
+  final int weightStepGrams;
+  final double bulkDiscountPct;
+
+  // Cost of goods
+  final double? cogsPercent;
+
+  // Related products
+  final List<String> relatedProductIds;
+
+  // Merchandising
+  final bool isBestSeller;
+
   const Product({
     required this.id,
     this.branchIds = const [],
@@ -67,10 +78,29 @@ class Product extends Equatable {
     this.options = const [],
     this.variants = const [],
     this.inventoryByBranch = const {},
+    this.minWeightGrams = 250,
+    this.maxWeightGrams = 5000,
+    this.weightStepGrams = 250,
+    this.bulkDiscountPct = 0,
+    this.cogsPercent,
+    this.relatedProductIds = const [],
+    this.isBestSeller = false,
   });
 
   String? get primaryImage => images.isNotEmpty ? images.first : null;
   bool get hasVariants => variants.isNotEmpty;
+
+  // Price for a given weight in grams (weight-based products only)
+  double priceForWeight(int weightGrams) {
+    if (type != ProductType.weight) return price;
+    final pricePerGram = price / 1000;
+    final range = (maxWeightGrams - minWeightGrams).clamp(1, double.maxFinite);
+    final ratio = ((weightGrams - minWeightGrams) / range).clamp(0.0, 1.0);
+    final discountRate = ratio * (bulkDiscountPct / 100);
+    return pricePerGram * weightGrams * (1 - discountRate);
+  }
+
+  double get profitMarginPct => cogsPercent == null ? 0 : (100 - cogsPercent!).clamp(0, 100);
 
   factory Product.fromJson(Map<String, dynamic> j) {
     final opts = (j['product_options'] as List<dynamic>? ?? [])
@@ -109,20 +139,35 @@ class Product extends Equatable {
           return MapEntry(m['branch_id'] as String, m['quantity'] as int);
         }),
       ),
+      minWeightGrams:  j['min_weight_grams'] as int? ?? 250,
+      maxWeightGrams:  j['max_weight_grams'] as int? ?? 5000,
+      weightStepGrams: j['weight_step_grams'] as int? ?? 250,
+      bulkDiscountPct: (j['bulk_discount_pct'] as num?)?.toDouble() ?? 0,
+      cogsPercent:     (j['cogs_percent'] as num?)?.toDouble(),
+      relatedProductIds: (j['product_related'] as List<dynamic>? ?? [])
+          .map((r) => (r as Map<String, dynamic>)['related_product_id'] as String)
+          .toList(),
+      isBestSeller: j['is_best_seller'] as bool? ?? false,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'name':             name,
-        'description':      description,
-        'price':            price,
-        'compare_at_price': compareAtPrice,
-        'product_type':     type.value,
-        'is_active':        isActive,
-        'track_inventory':  trackInventory,
-        'sort_order':       sortOrder,
-        'images':           images,
-        'loyalty_points':   loyaltyPoints,
+        'name':               name,
+        'description':        description,
+        'price':              price,
+        'compare_at_price':   compareAtPrice,
+        'product_type':       type.value,
+        'is_active':          isActive,
+        'track_inventory':    trackInventory,
+        'sort_order':         sortOrder,
+        'images':             images,
+        'loyalty_points':     loyaltyPoints,
+        'min_weight_grams':   minWeightGrams,
+        'max_weight_grams':   maxWeightGrams,
+        'weight_step_grams':  weightStepGrams,
+        'bulk_discount_pct':  bulkDiscountPct,
+        'cogs_percent':       cogsPercent,
+        'is_best_seller':     isBestSeller,
       };
 
   Product copyWith({
@@ -141,26 +186,41 @@ class Product extends Equatable {
     List<ProductOption>? options,
     List<ProductVariant>? variants,
     Map<String, int>? inventoryByBranch,
+    int? minWeightGrams,
+    int? maxWeightGrams,
+    int? weightStepGrams,
+    double? bulkDiscountPct,
+    double? cogsPercent,
+    bool clearCogs = false,
+    List<String>? relatedProductIds,
+    bool? isBestSeller,
   }) =>
       Product(
-        id:               id,
-        branchIds:        branchIds        ?? this.branchIds,
-        categoryIds:      categoryIds      ?? this.categoryIds,
-        name:             name             ?? this.name,
-        description:      description      ?? this.description,
-        price:            price            ?? this.price,
-        compareAtPrice:   compareAtPrice   ?? this.compareAtPrice,
-        type:             type             ?? this.type,
-        isActive:         isActive         ?? this.isActive,
-        trackInventory:   trackInventory   ?? this.trackInventory,
-        sortOrder:        sortOrder        ?? this.sortOrder,
-        images:           images           ?? this.images,
-        loyaltyPoints:    loyaltyPoints    ?? this.loyaltyPoints,
-        options:          options          ?? this.options,
-        variants:         variants         ?? this.variants,
+        id:                id,
+        branchIds:         branchIds         ?? this.branchIds,
+        categoryIds:       categoryIds       ?? this.categoryIds,
+        name:              name              ?? this.name,
+        description:       description       ?? this.description,
+        price:             price             ?? this.price,
+        compareAtPrice:    compareAtPrice    ?? this.compareAtPrice,
+        type:              type              ?? this.type,
+        isActive:          isActive          ?? this.isActive,
+        trackInventory:    trackInventory    ?? this.trackInventory,
+        sortOrder:         sortOrder         ?? this.sortOrder,
+        images:            images            ?? this.images,
+        loyaltyPoints:     loyaltyPoints     ?? this.loyaltyPoints,
+        options:           options           ?? this.options,
+        variants:          variants          ?? this.variants,
         inventoryByBranch: inventoryByBranch ?? this.inventoryByBranch,
+        minWeightGrams:    minWeightGrams    ?? this.minWeightGrams,
+        maxWeightGrams:    maxWeightGrams    ?? this.maxWeightGrams,
+        weightStepGrams:   weightStepGrams   ?? this.weightStepGrams,
+        bulkDiscountPct:   bulkDiscountPct   ?? this.bulkDiscountPct,
+        cogsPercent:       clearCogs ? null  : cogsPercent ?? this.cogsPercent,
+        relatedProductIds: relatedProductIds ?? this.relatedProductIds,
+        isBestSeller:      isBestSeller      ?? this.isBestSeller,
       );
 
   @override
-  List<Object?> get props => [id, branchIds, categoryIds, name, price, type, isActive, sortOrder];
+  List<Object?> get props => [id, branchIds, categoryIds, name, price, type, isActive, sortOrder, cogsPercent, relatedProductIds];
 }

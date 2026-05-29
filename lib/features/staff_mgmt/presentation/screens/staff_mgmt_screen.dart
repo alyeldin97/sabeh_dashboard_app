@@ -6,6 +6,7 @@ import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/helpers/app_border.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
+import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
 import '../../../auth/data/model/staff_user.dart';
 import '../../../branches/presentation/cubits/branches_cubit.dart';
 import '../../data/model/staff_member.dart';
@@ -35,8 +36,9 @@ class _StaffMgmtScreenState extends State<StaffMgmtScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryDeep,
         foregroundColor: AppColors.white,
+        automaticallyImplyLeading: false,
         title: Text(
-          'Staff',
+          AppLocalizations.of(context)!.staffTitle,
           style: GoogleFonts.nunito(
             fontSize: Responsive.sp(context, 18),
             fontWeight: FontWeight.w700,
@@ -47,7 +49,7 @@ class _StaffMgmtScreenState extends State<StaffMgmtScreen> {
           IconButton(
             icon: Icon(Icons.add_rounded, size: 24.r),
             onPressed: () => _openForm(context, null),
-            tooltip: 'Add Staff',
+            tooltip: AppLocalizations.of(context)!.staffAddTooltip,
           ),
         ],
       ),
@@ -55,7 +57,7 @@ class _StaffMgmtScreenState extends State<StaffMgmtScreen> {
         listener: (context, state) {
           if (state.mutationStatus == StaffMutationStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.errorMessage ?? 'Operation failed',
+              content: Text(state.errorMessage ?? AppLocalizations.of(context)!.staffMutationFailed,
                   style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 14))),
               backgroundColor: AppColors.error,
             ));
@@ -72,12 +74,12 @@ class _StaffMgmtScreenState extends State<StaffMgmtScreen> {
                 children: [
                   Icon(Icons.error_outline, size: 48.r, color: AppColors.error),
                   SizedBox(height: 12.h),
-                  Text(state.errorMessage ?? 'Failed to load staff',
+                  Text(state.errorMessage ?? AppLocalizations.of(context)!.staffFailedLoad,
                       style: GoogleFonts.nunito(color: AppColors.textLight)),
                   SizedBox(height: 16.h),
                   TextButton(
                     onPressed: () => context.read<StaffCubit>().load(),
-                    child: const Text('Retry'),
+                    child: Text(AppLocalizations.of(context)!.staffRetry),
                   ),
                 ],
               ),
@@ -102,13 +104,13 @@ class _StaffMgmtScreenState extends State<StaffMgmtScreen> {
                           children: [
                             Icon(Icons.people_outline_rounded, size: 64.r, color: AppColors.primaryLight),
                             SizedBox(height: 16.h),
-                            Text('No staff members',
+                            Text(AppLocalizations.of(context)!.staffEmpty,
                                 style: GoogleFonts.nunito(
                                     fontSize: Responsive.sp(context, 18),
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.textCharcoal)),
                             SizedBox(height: 8.h),
-                            Text('Tap + to add the first member',
+                            Text(AppLocalizations.of(context)!.staffEmptyHint,
                                 style: GoogleFonts.nunito(color: AppColors.textLight)),
                           ],
                         ),
@@ -147,23 +149,23 @@ class _StaffMgmtScreenState extends State<StaffMgmtScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Remove Staff Member',
+        title: Text(AppLocalizations.of(context)!.staffRemoveTitle,
             style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         content: Text(
-          'Remove ${member.name} from staff? This will also delete their login account.',
+          AppLocalizations.of(context)!.staffRemoveConfirm(member.name),
           style: GoogleFonts.nunito(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: GoogleFonts.nunito()),
+            child: Text(AppLocalizations.of(context)!.staffCancel, style: GoogleFonts.nunito()),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<StaffCubit>().delete(id: member.id);
             },
-            child: Text('Remove',
+            child: Text(AppLocalizations.of(context)!.staffRemove,
                 style: GoogleFonts.nunito(color: AppColors.error, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -184,7 +186,7 @@ class _RoleFilterChips extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
       child: Row(
         children: [
-          _Chip(label: 'All', isSelected: selected == null, onTap: () => onChanged(null)),
+          _Chip(label: AppLocalizations.of(context)!.staffFilterAll, isSelected: selected == null, onTap: () => onChanged(null)),
           SizedBox(width: 8.w),
           ...StaffRole.values.map((r) => Padding(
                 padding: EdgeInsets.only(right: 8.w),
@@ -314,7 +316,7 @@ class _StaffCard extends StatelessWidget {
                       Icon(Icons.store_outlined, size: 12.r, color: AppColors.textLight),
                       SizedBox(width: 4.w),
                       Text(
-                        'Branch scoped',
+                        AppLocalizations.of(context)!.staffBranchScoped,
                         style: GoogleFonts.nunito(
                           fontSize: Responsive.sp(context, 11),
                           color: AppColors.textLight,

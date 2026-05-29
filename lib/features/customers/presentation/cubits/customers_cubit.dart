@@ -133,4 +133,34 @@ class CustomersCubit extends Cubit<CustomersState> {
     emit(state.copyWith(customers: [customer, ...state.customers]));
     return customer;
   }
+
+  Future<CustomerAddress?> createAddress({
+    required String customerId,
+    String? label,
+    required String street,
+    String? building,
+    String? floor,
+    String? apartment,
+    String? landmark,
+    bool isDefault = false,
+  }) async {
+    AppLogger.i(_tag, 'createAddress customerId=$customerId');
+    try {
+      final address = await _repo.createCustomerAddress(
+        customerId: customerId,
+        label: label,
+        street: street,
+        building: building,
+        floor: floor,
+        apartment: apartment,
+        landmark: landmark,
+        isDefault: isDefault,
+      );
+      emit(state.copyWith(customerAddresses: [address, ...state.customerAddresses]));
+      return address;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'createAddress failed', e, st);
+      return null;
+    }
+  }
 }
