@@ -20,11 +20,17 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _feeCtrl          = TextEditingController();
-  final _maxPtsCtrl       = TextEditingController();
-  final _refBonusCtrl     = TextEditingController();
-  final _refRewardCtrl    = TextEditingController();
-  final _onlineWindowCtrl = TextEditingController();
+  final _feeCtrl                = TextEditingController();
+  final _maxPtsCtrl             = TextEditingController();
+  final _refBonusCtrl           = TextEditingController();
+  final _refRewardCtrl          = TextEditingController();
+  final _onlineWindowCtrl       = TextEditingController();
+  final _latePendingCtrl        = TextEditingController();
+  final _lateConfirmedCtrl      = TextEditingController();
+  final _latePreparingCtrl      = TextEditingController();
+  final _latePreparedCtrl       = TextEditingController();
+  final _lateOutDeliveryCtrl    = TextEditingController();
+  final _whatsappCtrl           = TextEditingController();
   bool _feeEnabled = false;
   bool _dirty = false;
 
@@ -33,12 +39,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.didChangeDependencies();
     final settings = context.read<AppSettingsCubit>().state.settings;
     if (settings != null && !_dirty) {
-      _feeCtrl.text          = settings.serviceFeeValue.toStringAsFixed(2);
-      _feeEnabled            = settings.serviceFeeEnabled;
-      _maxPtsCtrl.text       = settings.loyaltyMaxPointsPerOrder.toString();
-      _refBonusCtrl.text     = settings.loyaltyReferralBonus.toString();
-      _refRewardCtrl.text    = settings.loyaltyReferralReward.toString();
-      _onlineWindowCtrl.text = settings.onlineWindowMinutes.toString();
+      _feeCtrl.text             = settings.serviceFeeValue.toStringAsFixed(2);
+      _feeEnabled               = settings.serviceFeeEnabled;
+      _maxPtsCtrl.text          = settings.loyaltyMaxPointsPerOrder.toString();
+      _refBonusCtrl.text        = settings.loyaltyReferralBonus.toString();
+      _refRewardCtrl.text       = settings.loyaltyReferralReward.toString();
+      _onlineWindowCtrl.text    = settings.onlineWindowMinutes.toString();
+      _latePendingCtrl.text     = settings.latePendingMinutes.toString();
+      _lateConfirmedCtrl.text   = settings.lateConfirmedMinutes.toString();
+      _latePreparingCtrl.text   = settings.latePreparingMinutes.toString();
+      _latePreparedCtrl.text    = settings.latePreparedMinutes.toString();
+      _lateOutDeliveryCtrl.text = settings.lateOutForDeliveryMinutes.toString();
+      _whatsappCtrl.text        = settings.whatsappNumber ?? '';
     }
   }
 
@@ -49,22 +61,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _refBonusCtrl.dispose();
     _refRewardCtrl.dispose();
     _onlineWindowCtrl.dispose();
+    _latePendingCtrl.dispose();
+    _lateConfirmedCtrl.dispose();
+    _latePreparingCtrl.dispose();
+    _latePreparedCtrl.dispose();
+    _lateOutDeliveryCtrl.dispose();
+    _whatsappCtrl.dispose();
     super.dispose();
   }
 
   void _save() {
-    final value        = double.tryParse(_feeCtrl.text) ?? 0;
-    final maxPts       = int.tryParse(_maxPtsCtrl.text) ?? 0;
-    final refBonus     = int.tryParse(_refBonusCtrl.text) ?? 50;
-    final refReward    = int.tryParse(_refRewardCtrl.text) ?? 50;
-    final onlineWindow = (int.tryParse(_onlineWindowCtrl.text) ?? 3).clamp(1, 60);
+    final value                = double.tryParse(_feeCtrl.text) ?? 0;
+    final maxPts               = int.tryParse(_maxPtsCtrl.text) ?? 0;
+    final refBonus             = int.tryParse(_refBonusCtrl.text) ?? 50;
+    final refReward            = int.tryParse(_refRewardCtrl.text) ?? 50;
+    final onlineWindow         = (int.tryParse(_onlineWindowCtrl.text) ?? 3).clamp(1, 60);
+    final latePending          = (int.tryParse(_latePendingCtrl.text) ?? 30).clamp(1, 999);
+    final lateConfirmed        = (int.tryParse(_lateConfirmedCtrl.text) ?? 30).clamp(1, 999);
+    final latePreparing        = (int.tryParse(_latePreparingCtrl.text) ?? 30).clamp(1, 999);
+    final latePrepared         = (int.tryParse(_latePreparedCtrl.text) ?? 30).clamp(1, 999);
+    final lateOutForDelivery   = (int.tryParse(_lateOutDeliveryCtrl.text) ?? 60).clamp(1, 999);
     context.read<AppSettingsCubit>().save(
-          serviceFeeValue:          value,
-          serviceFeeEnabled:        _feeEnabled,
-          loyaltyMaxPointsPerOrder: maxPts,
-          loyaltyReferralBonus:     refBonus,
-          loyaltyReferralReward:    refReward,
-          onlineWindowMinutes:      onlineWindow,
+          serviceFeeValue:           value,
+          serviceFeeEnabled:         _feeEnabled,
+          loyaltyMaxPointsPerOrder:  maxPts,
+          loyaltyReferralBonus:      refBonus,
+          loyaltyReferralReward:     refReward,
+          onlineWindowMinutes:       onlineWindow,
+          latePendingMinutes:        latePending,
+          lateConfirmedMinutes:      lateConfirmed,
+          latePreparingMinutes:      latePreparing,
+          latePreparedMinutes:       latePrepared,
+          lateOutForDeliveryMinutes: lateOutForDelivery,
+          whatsappNumber:            _whatsappCtrl.text.trim(),
         );
     setState(() => _dirty = false);
     FocusScope.of(context).unfocus();
@@ -90,11 +119,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: BlocListener<AppSettingsCubit, AppSettingsState>(
         listener: (context, state) {
           if (state.status == AppSettingsStatus.loaded && state.settings != null && !_dirty) {
-            _feeCtrl.text          = state.settings!.serviceFeeValue.toStringAsFixed(2);
-            _maxPtsCtrl.text       = state.settings!.loyaltyMaxPointsPerOrder.toString();
-            _refBonusCtrl.text     = state.settings!.loyaltyReferralBonus.toString();
-            _refRewardCtrl.text    = state.settings!.loyaltyReferralReward.toString();
-            _onlineWindowCtrl.text = state.settings!.onlineWindowMinutes.toString();
+            _feeCtrl.text             = state.settings!.serviceFeeValue.toStringAsFixed(2);
+            _maxPtsCtrl.text          = state.settings!.loyaltyMaxPointsPerOrder.toString();
+            _refBonusCtrl.text        = state.settings!.loyaltyReferralBonus.toString();
+            _refRewardCtrl.text       = state.settings!.loyaltyReferralReward.toString();
+            _onlineWindowCtrl.text    = state.settings!.onlineWindowMinutes.toString();
+            _latePendingCtrl.text     = state.settings!.latePendingMinutes.toString();
+            _lateConfirmedCtrl.text   = state.settings!.lateConfirmedMinutes.toString();
+            _latePreparingCtrl.text   = state.settings!.latePreparingMinutes.toString();
+            _latePreparedCtrl.text    = state.settings!.latePreparedMinutes.toString();
+            _lateOutDeliveryCtrl.text = state.settings!.lateOutForDeliveryMinutes.toString();
+            _whatsappCtrl.text        = state.settings!.whatsappNumber ?? '';
             setState(() => _feeEnabled = state.settings!.serviceFeeEnabled);
           }
           if (state.status == AppSettingsStatus.failure) {
@@ -469,6 +504,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
 
+                          SizedBox(height: 20.h),
+
+                          // ── WhatsApp contact number ──────────────────────
+                          Row(
+                            children: [
+                              Container(
+                                width: 28.r, height: 28.r,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: AppBorderRadius.r8,
+                                ),
+                                child: const Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 16),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'WhatsApp Number',
+                                style: GoogleFonts.nunito(
+                                  fontSize: Responsive.sp(context, 14),
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            'Include country code without + (e.g. 201001234567). Leave empty to hide the button.',
+                            style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 11), color: AppColors.textLight),
+                          ),
+                          SizedBox(height: 6.h),
+                          TextField(
+                            controller: _whatsappCtrl,
+                            keyboardType: TextInputType.phone,
+                            style: GoogleFonts.nunito(
+                              fontSize: Responsive.sp(context, 15),
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
+                            onChanged: (_) => setState(() => _dirty = true),
+                            decoration: InputDecoration(
+                              hintText: '201001234567',
+                              prefixIcon: Icon(Icons.chat_rounded, size: 18, color: const Color(0xFF25D366)),
+                              filled: true,
+                              fillColor: AppColors.scaffoldBg,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              border: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: AppColors.border)),
+                              enabledBorder: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: AppColors.border)),
+                              focusedBorder: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: const BorderSide(color: Color(0xFF25D366), width: 2)),
+                            ),
+                          ),
+
+                          SizedBox(height: 20.h),
+
+                          // ── Late-flag thresholds ─────────────────────────
+                          Row(
+                            children: [
+                              Container(
+                                width: 28.r, height: 28.r,
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade50,
+                                  borderRadius: AppBorderRadius.r8,
+                                ),
+                                child: Icon(Icons.timer_outlined, color: Colors.orange.shade700, size: 16),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Late-Flag Thresholds (minutes)',
+                                style: GoogleFonts.nunito(
+                                  fontSize: Responsive.sp(context, 14),
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            'Orders exceeding these limits are flagged as late on the board.',
+                            style: GoogleFonts.nunito(fontSize: Responsive.sp(context, 11), color: AppColors.textLight),
+                          ),
+                          SizedBox(height: 10.h),
+                          _LateThresholdField(label: 'Pending → Confirmed', ctrl: _latePendingCtrl, onChanged: () => setState(() => _dirty = true)),
+                          SizedBox(height: 8.h),
+                          _LateThresholdField(label: 'Confirmed → Preparing', ctrl: _lateConfirmedCtrl, onChanged: () => setState(() => _dirty = true)),
+                          SizedBox(height: 8.h),
+                          _LateThresholdField(label: 'Preparing → Prepared', ctrl: _latePreparingCtrl, onChanged: () => setState(() => _dirty = true)),
+                          SizedBox(height: 8.h),
+                          _LateThresholdField(label: 'Prepared → Out for Delivery', ctrl: _latePreparedCtrl, onChanged: () => setState(() => _dirty = true)),
+                          SizedBox(height: 8.h),
+                          _LateThresholdField(label: 'Out for Delivery → Done', ctrl: _lateOutDeliveryCtrl, onChanged: () => setState(() => _dirty = true)),
+
                           SizedBox(height: 16.h),
 
                           SizedBox(
@@ -608,6 +734,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
         ),
       ),
+    );
+  }
+}
+
+class _LateThresholdField extends StatelessWidget {
+  const _LateThresholdField({
+    required this.label,
+    required this.ctrl,
+    required this.onChanged,
+  });
+  final String label;
+  final TextEditingController ctrl;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+              fontSize: Responsive.sp(context, 12),
+              fontWeight: FontWeight.w600,
+              color: AppColors.textLight,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 80.w,
+          child: TextField(
+            controller: ctrl,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+              fontSize: Responsive.sp(context, 14),
+              fontWeight: FontWeight.w700,
+              color: AppColors.textDark,
+            ),
+            onChanged: (_) => onChanged(),
+            decoration: InputDecoration(
+              suffixText: 'min',
+              suffixStyle: GoogleFonts.nunito(fontSize: 11, color: AppColors.textLight),
+              filled: true,
+              fillColor: AppColors.scaffoldBg,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              border: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: AppColors.border)),
+              enabledBorder: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: AppColors.border)),
+              focusedBorder: OutlineInputBorder(borderRadius: AppBorderRadius.r8, borderSide: BorderSide(color: Colors.orange, width: 2)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

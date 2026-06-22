@@ -58,13 +58,21 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     emit(state.copyWith(onlineWindowMinutes: minutes.clamp(1, 60)));
   }
 
+  void toggleCompensationFilter() {
+    emit(state.copyWith(showCompensationOnly: !state.showCompensationOnly));
+    load();
+  }
+
   Future<void> load({String? branchId}) async {
     final effectiveBranch = branchId ?? state.branchId;
     AppLogger.i(_tag, 'load from=${state.fromDate} to=${state.toDate} branch=$effectiveBranch');
     emit(state.copyWith(status: AnalyticsStatus.loading));
     try {
       final orders = await _repo.getOrders(branchId: effectiveBranch);
-      final filtered = _filterByDateRange(orders, state.fromDate, state.toDate);
+      var filtered = _filterByDateRange(orders, state.fromDate, state.toDate);
+      if (state.showCompensationOnly) {
+        filtered = filtered.where((o) => o.isCompensation).toList();
+      }
 
       final futures = await Future.wait([
         _loadEventData(effectiveBranch, state.fromDate, state.toDate),
@@ -301,9 +309,12 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     }
   }
 
+  static bool _isBillable(OrderModel o) =>
+      o.status != OrderStatus.cancelled && o.status != OrderStatus.rejected;
+
   Future<double> _computeTotalCogs(List<OrderModel> orders) async {
     final productIds = orders
-        .where((o) => o.status != OrderStatus.cancelled)
+        .where(_isBillable)
         .expand((o) => o.items)
         .where((i) => i.productId != null)
         .map((i) => i.productId!)
@@ -322,7 +333,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         if (pct != null) cogsMap[row['id'] as String] = pct;
       }
       double total = 0;
-      for (final o in orders.where((o) => o.status != OrderStatus.cancelled)) {
+      for (final o in orders.where(_isBillable)) {
         for (final item in o.items) {
           if (item.productId != null) {
             final pct = cogsMap[item.productId];
@@ -375,7 +386,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     final branchOrderMap = <String, int>{};
 
     for (final o in orders) {
-      if (o.status != OrderStatus.cancelled) {
+      if (_isBillable(o)) {
         totalSales       += o.totalPrice;
         totalDelivery    += o.userPaidDeliveryFees;
         loyaltyDiscTotal += o.loyaltyDiscount;
@@ -397,6 +408,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
       switch (o.status) {
         case OrderStatus.delivered:      fulfilled++;  break;
         case OrderStatus.cancelled:      cancelled++;  break;
+        case OrderStatus.rejected:       cancelled++;  break;
         case OrderStatus.pending:        pending++;    break;
         case OrderStatus.confirmed:      confirmed++;  break;
         case OrderStatus.preparing:      preparing++;  break;
@@ -405,7 +417,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
       }
 
       for (final item in o.items) {
-        if (o.status != OrderStatus.cancelled) {
+        if (_isBillable(o)) {
           productRevMap[item.productName] =
               (productRevMap[item.productName] ?? 0) + item.subtotal;
           productQtyMap[item.productName] =
@@ -419,13 +431,13 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
 
       final dayKey =
           '${o.createdAt.year}-${o.createdAt.month.toString().padLeft(2, '0')}-${o.createdAt.day.toString().padLeft(2, '0')}';
-      if (o.status != OrderStatus.cancelled) {
+      if (_isBillable(o)) {
         dailyMap[dayKey] = (dailyMap[dayKey] ?? 0) + o.totalPrice;
       }
     }
 
     final totalOrders  = orders.length;
-    final nonCancelled = totalOrders - cancelled;
+    final nonCancelled = orders.where(_isBillable).length;
 
     final salesByZone = branchSalesMap.entries
         .map((e) => ZoneSales(

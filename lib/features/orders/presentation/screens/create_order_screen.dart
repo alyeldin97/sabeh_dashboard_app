@@ -18,6 +18,7 @@ import '../../../products/data/model/product.dart';
 import '../../../products/data/model/product_variant.dart';
 import '../../../products/presentation/cubits/products_cubit.dart';
 import '../cubits/orders_cubit.dart';
+import '../../data/model/order_model.dart';
 
 // Holds a selected product entry in the cart
 class _CartEntry {
@@ -78,6 +79,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   final _discountCtrl = TextEditingController(text: '0');
   final _notesCtrl = TextEditingController();
   String _paymentMethod = 'cash';
+  OrderType _orderType = OrderType.normal;
 
   @override
   void initState() {
@@ -162,6 +164,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       'payment_method':   _paymentMethod,
       'points_earned':    0,
       'points_redeemed':  0,
+      'order_type':       _orderType.value,
     };
 
     final items = [
@@ -335,6 +338,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           discountCtrl: _discountCtrl,
           notesCtrl: _notesCtrl,
           paymentMethod: _paymentMethod,
+          orderType: _orderType,
           subtotal: _subtotal,
           customerId: _selectedCustomer?.id,
           onZoneChanged: (z) => setState(() => _selectedZone = z),
@@ -342,6 +346,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           onAddressChanged: (a) => setState(() => _selectedAddress = a),
           onDiscountChanged: (v) => setState(() => _discount = v),
           onPaymentChanged: (v) => setState(() => _paymentMethod = v),
+          onOrderTypeChanged: (t) => setState(() => _orderType = t),
         );
       case 3: return _Step3Confirm(
           customer: _selectedCustomer,
@@ -1565,6 +1570,7 @@ class _Step2OrderDetails extends StatefulWidget {
     required this.discountCtrl,
     required this.notesCtrl,
     required this.paymentMethod,
+    required this.orderType,
     required this.subtotal,
     required this.customerId,
     required this.onZoneChanged,
@@ -1572,6 +1578,7 @@ class _Step2OrderDetails extends StatefulWidget {
     required this.onAddressChanged,
     required this.onDiscountChanged,
     required this.onPaymentChanged,
+    required this.onOrderTypeChanged,
   });
   final DeliveryZoneModel? selectedZone;
   final BranchModel? selectedBranch;
@@ -1580,6 +1587,7 @@ class _Step2OrderDetails extends StatefulWidget {
   final TextEditingController discountCtrl;
   final TextEditingController notesCtrl;
   final String paymentMethod;
+  final OrderType orderType;
   final double subtotal;
   final String? customerId;
   final void Function(DeliveryZoneModel?) onZoneChanged;
@@ -1587,6 +1595,7 @@ class _Step2OrderDetails extends StatefulWidget {
   final void Function(CustomerAddress?) onAddressChanged;
   final void Function(double) onDiscountChanged;
   final void Function(String) onPaymentChanged;
+  final void Function(OrderType) onOrderTypeChanged;
 
   @override
   State<_Step2OrderDetails> createState() => _Step2OrderDetailsState();
@@ -2002,6 +2011,56 @@ class _Step2OrderDetailsState extends State<_Step2OrderDetails> {
           ],
         ),
         SizedBox(height: 14.h),
+        Text('Order Type',
+            style: GoogleFonts.nunito(
+                fontSize: Responsive.sp(context, 13),
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMid)),
+        SizedBox(height: 6.h),
+        Row(
+          children: [
+            _PaymentOption(
+              label: 'Normal',
+              icon: Icons.receipt_long_outlined,
+              value: 'normal',
+              selected: widget.orderType == OrderType.normal,
+              onTap: () => widget.onOrderTypeChanged(OrderType.normal),
+            ),
+            SizedBox(width: 10.w),
+            _PaymentOption(
+              label: 'Compensation',
+              icon: Icons.volunteer_activism_outlined,
+              value: 'compensation',
+              selected: widget.orderType == OrderType.compensation,
+              onTap: () => widget.onOrderTypeChanged(OrderType.compensation),
+              activeColor: Colors.orange.shade700,
+            ),
+          ],
+        ),
+        if (widget.orderType == OrderType.compensation) ...[
+          SizedBox(height: 6.h),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: AppBorderRadius.r8,
+              border: Border.all(color: Colors.orange.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 14, color: Colors.orange.shade700),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Compensation: only shipping fees are charged to the driver. Cart/service fees are zero.',
+                    style: GoogleFonts.nunito(fontSize: 11, color: Colors.orange.shade800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        SizedBox(height: 14.h),
         Text('Payment Method',
             style: GoogleFonts.nunito(
                 fontSize: Responsive.sp(context, 13),
@@ -2106,25 +2165,28 @@ class _PaymentOption extends StatelessWidget {
     required this.value,
     required this.selected,
     required this.onTap,
+    this.activeColor,
   });
   final String label;
   final IconData icon;
   final String value;
   final bool selected;
   final VoidCallback onTap;
+  final Color? activeColor;
 
   @override
   Widget build(BuildContext context) {
+    final selColor = activeColor ?? AppColors.primaryDeep;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryDeep : AppColors.white,
+            color: selected ? selColor : AppColors.white,
             borderRadius: AppBorderRadius.r12,
             border: Border.all(
-              color: selected ? AppColors.primaryDeep : AppColors.border,
+              color: selected ? selColor : AppColors.border,
             ),
           ),
           child: Column(

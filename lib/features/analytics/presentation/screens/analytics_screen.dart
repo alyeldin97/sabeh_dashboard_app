@@ -293,6 +293,53 @@ class _FiltersCard extends StatelessWidget {
               );
             },
           ),
+          SizedBox(height: 10.h),
+          GestureDetector(
+            onTap: () => context.read<AnalyticsCubit>().toggleCompensationFilter(),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
+              decoration: BoxDecoration(
+                color: state.showCompensationOnly
+                    ? Colors.orange.shade100
+                    : AppColors.scaffoldBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: state.showCompensationOnly
+                      ? Colors.orange.shade400
+                      : AppColors.border,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.volunteer_activism_outlined,
+                    size: 14,
+                    color: state.showCompensationOnly
+                        ? Colors.orange.shade700
+                        : AppColors.textLight,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Compensation Orders Only',
+                    style: GoogleFonts.nunito(
+                      fontSize: Responsive.sp(context, 12),
+                      fontWeight: state.showCompensationOnly
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: state.showCompensationOnly
+                          ? Colors.orange.shade800
+                          : AppColors.textMid,
+                    ),
+                  ),
+                  if (state.showCompensationOnly) ...[
+                    const SizedBox(width: 4),
+                    Icon(Icons.check_circle_rounded, size: 14, color: Colors.orange.shade700),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

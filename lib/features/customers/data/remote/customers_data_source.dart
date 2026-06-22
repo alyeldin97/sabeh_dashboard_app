@@ -8,7 +8,7 @@ abstract class CustomersDataSource {
   Future<List<OrderModel>> getCustomerOrders(String customerId);
   Future<List<CustomerAddress>> getCustomerAddresses(String customerId);
   Future<void> updateInternalNotes(String customerId, String notes);
-  Future<void> adjustLoyaltyPoints(String customerId, int delta, String description);
+  Future<void> adjustLoyaltyPoints(String customerId, int delta, String description, {String? reason});
   Future<Customer> createCustomer({required String name, String? phone, String? email});
   Future<CustomerAddress> createCustomerAddress({
     required String customerId,

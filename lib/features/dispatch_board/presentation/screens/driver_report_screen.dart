@@ -184,14 +184,12 @@ class _DriverReportScreenState extends State<DriverReportScreen> {
   // ── Financial calculations ─────────────────────────────────────────────────
 
   List<OrderModel> get _nonCancelledOrders =>
-      _orders.where((o) => o.status != OrderStatus.cancelled).toList();
+      _orders.where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.rejected).toList();
 
   List<OrderModel> get _activeOrders =>
       _nonCancelledOrders.where((o) => !(_collected[o.id] ?? false)).toList();
 
-  List<OrderModel> get _activeBillable => _activeOrders
-      .where((o) => o.status != OrderStatus.cancelled)
-      .toList();
+  List<OrderModel> get _activeBillable => _activeOrders.toList();
 
   double _effectiveCost(OrderModel o) {
     if (o.zoneDeliveryFee > 0) return o.zoneDeliveryFee;
@@ -202,18 +200,24 @@ class _DriverReportScreenState extends State<DriverReportScreen> {
 
   double _actualCostForOrder(OrderModel o) => _effectiveCost(o);
 
+  // For compensation orders: driver collects nothing (order is free for customer)
+  // Only the shipping fee is relevant for driver payment.
+  double _billableAmount(OrderModel o) =>
+      o.isCompensation ? 0.0 : o.amountDue;
+
   // Driver collects cash for cash orders only (amountDue = totalPrice - deposit)
   double get _cashCollected => _activeBillable
       .where((o) => o.isCash)
-      .fold(0.0, (s, o) => s + o.amountDue);
+      .fold(0.0, (s, o) => s + _billableAmount(o));
 
   // IP orders go directly to us; amountDue = totalPrice - deposit (deposit also goes directly to us)
   double get _instapayVal => _activeBillable
       .where((o) => !o.isCash)
-      .fold(0.0, (s, o) => s + o.amountDue);
+      .fold(0.0, (s, o) => s + _billableAmount(o));
 
   // All deposits (cash + IP) are transferred directly to us, not through driver
   double get _totalDeposits => _activeBillable
+      .where((o) => !o.isCompensation)
       .fold(0.0, (s, o) => s + o.deposit);
 
   double get _totalActualCost =>
@@ -713,11 +717,13 @@ class _DriverOrderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isCancelled = order.status == OrderStatus.cancelled;
+    final isCancelled = order.status == OrderStatus.cancelled || order.status == OrderStatus.rejected;
+    final isCompensation = order.isCompensation;
     final dateFmt = DateFormat('dd MMM, hh:mm a');
 
-    // Per-order net
-    final cashCollected  = order.isCash ? order.amountDue : 0.0;
+    // Compensation orders: customer doesn't pay; only shipping fee matters for driver
+    final effectiveBillable = isCompensation ? 0.0 : order.amountDue;
+    final cashCollected  = order.isCash ? effectiveBillable : 0.0;
     final weOweDriver    = actualCost + order.maradia;
     final netPerOrder    = cashCollected - weOweDriver;
 
@@ -754,6 +760,10 @@ class _DriverOrderRow extends StatelessWidget {
                   _Badge(order.status.label, _statusColor(order.status)),
                   const SizedBox(width: 4),
                   if (isCancelled) _Badge('مرتجع', Colors.red),
+                  if (isCompensation) ...[
+                    _Badge('COMP', Colors.orange.shade700),
+                    const SizedBox(width: 4),
+                  ],
                   _Badge(order.isCash ? 'Cash' : 'Instapay',
                       order.isCash ? Colors.green.shade700 : Colors.indigo),
                   const Spacer(),
@@ -790,6 +800,30 @@ class _DriverOrderRow extends StatelessWidget {
 
               // ── Financial breakdown ────────────────────────────────────────
               if (!isCancelled) ...[
+                if (isCompensation) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.volunteer_activism_outlined, size: 13, color: Colors.orange.shade700),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'تعويض · Compensation — العميل لا يدفع، فقط رسوم التوصيل',
+                            style: GoogleFonts.nunito(fontSize: 11, color: Colors.orange.shade800, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (!isCompensation)
                 _BreakdownRow(
                   label: 'إجمالي الطلب · Order Total',
                   value: order.totalPrice,
@@ -810,37 +844,57 @@ class _DriverOrderRow extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: order.isCash
-                        ? Colors.green.withValues(alpha: 0.08)
-                        : Colors.indigo.withValues(alpha: 0.08),
+                    color: isCompensation
+                        ? Colors.orange.withValues(alpha: 0.08)
+                        : order.isCash
+                            ? Colors.green.withValues(alpha: 0.08)
+                            : Colors.indigo.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        order.isCash ? Icons.payments_outlined : Icons.account_balance_wallet_outlined,
+                        isCompensation
+                            ? Icons.volunteer_activism_outlined
+                            : order.isCash
+                                ? Icons.payments_outlined
+                                : Icons.account_balance_wallet_outlined,
                         size: 14,
-                        color: order.isCash ? Colors.green.shade700 : Colors.indigo,
+                        color: isCompensation
+                            ? Colors.orange.shade700
+                            : order.isCash
+                                ? Colors.green.shade700
+                                : Colors.indigo,
                       ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          order.isCash
-                              ? 'يُسلّم الطيار · Driver collects'
-                              : 'انستاباي → مباشر لنا · Instapay → goes to us',
+                          isCompensation
+                              ? 'تعويض · No collection'
+                              : order.isCash
+                                  ? 'يُسلّم الطيار · Driver collects'
+                                  : 'انستاباي → مباشر لنا · Instapay → goes to us',
                           style: GoogleFonts.nunito(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: order.isCash ? Colors.green.shade700 : Colors.indigo,
+                            color: isCompensation
+                                ? Colors.orange.shade700
+                                : order.isCash
+                                    ? Colors.green.shade700
+                                    : Colors.indigo,
                           ),
                         ),
                       ),
                       Text(
-                        'EGP ${(order.isCash ? order.amountDue : order.amountDue).toStringAsFixed(0)}',
+                        'EGP ${effectiveBillable.toStringAsFixed(0)}',
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
-                          color: order.isCash ? Colors.green.shade700 : Colors.indigo,
+                          color: isCompensation
+                              ? Colors.orange.shade700
+                              : order.isCash
+                                  ? Colors.green.shade700
+                                  : Colors.indigo,
                         ),
                       ),
                     ],

@@ -1,5 +1,26 @@
 import 'package:equatable/equatable.dart';
 
+enum OrderType {
+  normal,
+  compensation;
+
+  static OrderType fromString(String v) {
+    switch (v) {
+      case 'compensation': return OrderType.compensation;
+      default:             return OrderType.normal;
+    }
+  }
+
+  String get value => name;
+
+  String get label {
+    switch (this) {
+      case OrderType.normal:       return 'Normal';
+      case OrderType.compensation: return 'Compensation';
+    }
+  }
+}
+
 enum OrderStatus {
   pending,
   confirmed,
@@ -7,7 +28,8 @@ enum OrderStatus {
   prepared,
   outForDelivery,
   delivered,
-  cancelled;
+  cancelled,
+  rejected;
 
   static OrderStatus fromString(String v) {
     switch (v) {
@@ -17,6 +39,7 @@ enum OrderStatus {
       case 'out_for_delivery': return OrderStatus.outForDelivery;
       case 'delivered':        return OrderStatus.delivered;
       case 'cancelled':        return OrderStatus.cancelled;
+      case 'rejected':         return OrderStatus.rejected;
       default:                 return OrderStatus.pending;
     }
   }
@@ -30,6 +53,7 @@ enum OrderStatus {
       case OrderStatus.outForDelivery: return 'out_for_delivery';
       case OrderStatus.delivered:      return 'delivered';
       case OrderStatus.cancelled:      return 'cancelled';
+      case OrderStatus.rejected:       return 'rejected';
     }
   }
 
@@ -42,8 +66,14 @@ enum OrderStatus {
       case OrderStatus.outForDelivery: return 'Out for Delivery';
       case OrderStatus.delivered:      return 'Delivered';
       case OrderStatus.cancelled:      return 'Cancelled';
+      case OrderStatus.rejected:       return 'Rejected';
     }
   }
+
+  bool get isTerminal =>
+      this == OrderStatus.delivered ||
+      this == OrderStatus.cancelled ||
+      this == OrderStatus.rejected;
 }
 
 class OrderItem extends Equatable {
@@ -112,6 +142,9 @@ class OrderModel extends Equatable {
   final String? zoneId;
   final double maradia;
   final String? staffNote;
+  final String? transactionInvoiceImage;
+  final OrderType orderType;
+  final DateTime statusChangedAt;
 
   const OrderModel({
     required this.id,
@@ -119,6 +152,7 @@ class OrderModel extends Equatable {
     this.branchId,
     this.customerId,
     required this.status,
+    this.orderType = OrderType.normal,
     required this.totalPrice,
     this.userPaidDeliveryFees = 0,
     this.zoneDeliveryFee = 0,
@@ -146,7 +180,9 @@ class OrderModel extends Equatable {
     this.zoneId,
     this.maradia = 0,
     this.staffNote,
-  });
+    this.transactionInvoiceImage,
+    DateTime? statusChangedAt,
+  }) : statusChangedAt = statusChangedAt ?? createdAt;
 
   factory OrderModel.fromJson(Map<String, dynamic> j) {
     // customer phone: may come from a join on customer_profiles
@@ -186,8 +222,13 @@ class OrderModel extends Equatable {
       deposit:       (j['deposit'] as num?)?.toDouble() ?? 0,
       zoneName:      j['zone_name'] as String?,
       zoneId:        j['zone_id'] as String?,
-      maradia:       (j['maradia'] as num?)?.toDouble() ?? 0,
-      staffNote:     j['staff_note'] as String?,
+      maradia:                   (j['maradia'] as num?)?.toDouble() ?? 0,
+      staffNote:                 j['staff_note'] as String?,
+      transactionInvoiceImage:   j['transaction_invoice_image'] as String?,
+      orderType:                 OrderType.fromString(j['order_type'] as String? ?? 'normal'),
+      statusChangedAt:           j['status_changed_at'] != null
+          ? DateTime.parse(j['status_changed_at'] as String)
+          : null,
     );
   }
 
@@ -195,6 +236,7 @@ class OrderModel extends Equatable {
 
   OrderModel copyWith({
     OrderStatus? status,
+    OrderType? orderType,
     String? driverId,
     String? driverName,
     bool clearDriver = false,
@@ -207,12 +249,16 @@ class OrderModel extends Equatable {
     double? zoneDeliveryFee,
     String? staffNote,
     bool clearStaffNote = false,
+    String? transactionInvoiceImage,
+    bool clearTransactionInvoiceImage = false,
+    DateTime? statusChangedAt,
   }) => OrderModel(
         id:                   id,
         orderNumber:          orderNumber,
         branchId:             branchId,
         customerId:           customerId,
         status:               status ?? this.status,
+        orderType:            orderType ?? this.orderType,
         totalPrice:           totalPrice,
         userPaidDeliveryFees: userPaidDeliveryFees,
         zoneDeliveryFee:      zoneDeliveryFee ?? this.zoneDeliveryFee,
@@ -240,7 +286,13 @@ class OrderModel extends Equatable {
         zoneId:               zoneId ?? this.zoneId,
         maradia:              maradia ?? this.maradia,
         staffNote:            clearStaffNote ? null : staffNote ?? this.staffNote,
+        transactionInvoiceImage: clearTransactionInvoiceImage
+            ? null
+            : transactionInvoiceImage ?? this.transactionInvoiceImage,
+        statusChangedAt:      statusChangedAt ?? this.statusChangedAt,
       );
+
+  bool get isCompensation => orderType == OrderType.compensation;
 
   bool get isCash => paymentMethod == 'cash';
   bool get hasLocation => deliveryLat != null && deliveryLng != null;
@@ -254,8 +306,9 @@ class OrderModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id, orderNumber, branchId, customerId, status, totalPrice, loyaltyDiscount,
+        id, orderNumber, branchId, customerId, status, orderType, totalPrice, loyaltyDiscount,
         promoDiscount, pointsRedeemed, pointsEarned, notes, items, createdAt,
         driverId, driverName, isPaid, customerPhone, deposit, zoneName, staffNote,
+        transactionInvoiceImage, statusChangedAt,
       ];
 }

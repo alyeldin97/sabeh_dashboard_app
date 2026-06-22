@@ -99,14 +99,16 @@ class SupabaseLoyaltyDataSource implements LoyaltyDataSource {
     required String customerId,
     required int points,
     required String description,
+    String? reason,
     bool isPermanent = false,
   }) async {
     AppLogger.net(_tag, 'manualAdjustPoints', '$customerId pts=$points');
     await _client.from('loyalty_transactions').insert({
-      'customer_id': customerId,
-      'points':      points,
-      'type':        'manual',
-      'description': description,
+      'customer_id':  customerId,
+      'points':       points,
+      'type':         'manual',
+      'description':  description,
+      if (reason != null && reason.isNotEmpty) 'reason': reason,
       'is_permanent': isPermanent,
     });
     await _client.rpc('increment_loyalty_points', params: {

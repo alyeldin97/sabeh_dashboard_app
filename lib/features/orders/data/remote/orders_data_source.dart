@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../model/order_history_model.dart';
 import '../model/order_model.dart';
 
@@ -20,6 +21,7 @@ abstract class OrdersDataSource {
     String? paymentMethod,
     String? customerPhone,
     String? staffNote,
+    String? orderType,
   });
   Future<void> updateOrderItems({
     required String orderId,
@@ -49,4 +51,14 @@ abstract class OrdersDataSource {
 
   Stream<void> watchOrders({String? branchId});
   Future<void> stopWatchingOrders();
+
+  Future<String> uploadTransactionInvoiceImage({
+    required String orderId,
+    required Uint8List bytes,
+    required String extension,
+  });
+  Future<void> updateTransactionInvoice({
+    required String orderId,
+    String? imageUrl,
+  });
 }

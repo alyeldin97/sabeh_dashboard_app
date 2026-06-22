@@ -10,6 +10,7 @@ class DispatchBoardState extends Equatable {
   final String? selectedDriverId;
   final String searchQuery;
   final String? errorMessage;
+  final bool showLateOnly;
 
   const DispatchBoardState({
     this.status = DispatchBoardStatus.initial,
@@ -18,6 +19,7 @@ class DispatchBoardState extends Equatable {
     this.selectedDriverId,
     this.searchQuery = '',
     this.errorMessage,
+    this.showLateOnly = false,
   });
 
   DispatchBoardState copyWith({
@@ -28,6 +30,7 @@ class DispatchBoardState extends Equatable {
     bool clearDriverFilter = false,
     String? searchQuery,
     String? errorMessage,
+    bool? showLateOnly,
   }) =>
       DispatchBoardState(
         status:          status          ?? this.status,
@@ -38,6 +41,7 @@ class DispatchBoardState extends Equatable {
             : selectedDriverId ?? this.selectedDriverId,
         searchQuery:     searchQuery     ?? this.searchQuery,
         errorMessage:    errorMessage,
+        showLateOnly:    showLateOnly    ?? this.showLateOnly,
       );
 
   List<OrderModel> filteredColumn(OrderStatus s) {
@@ -68,5 +72,5 @@ class DispatchBoardState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [status, viewDate, columns, selectedDriverId, searchQuery, errorMessage];
+      [status, viewDate, columns, selectedDriverId, searchQuery, errorMessage, showLateOnly];
 }

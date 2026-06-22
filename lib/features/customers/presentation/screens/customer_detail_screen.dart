@@ -105,11 +105,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               SizedBox(height: 12.h),
               _LoyaltyCard(
                 customer: customer,
-                onAdjust: (delta, desc) =>
+                onAdjust: (delta, desc, {String? reason}) =>
                     context.read<CustomersCubit>().adjustPoints(
                           customer.id,
                           delta,
                           desc,
+                          reason: reason,
                         ),
               ),
               SizedBox(height: 12.h),
@@ -318,7 +319,7 @@ class _ProfileCard extends StatelessWidget {
 class _LoyaltyCard extends StatelessWidget {
   const _LoyaltyCard({required this.customer, required this.onAdjust});
   final Customer customer;
-  final void Function(int delta, String description) onAdjust;
+  final void Function(int delta, String description, {String? reason}) onAdjust;
 
   @override
   Widget build(BuildContext context) {
@@ -521,12 +522,11 @@ class _LoyaltyCard extends StatelessWidget {
                       onPressed: () {
                         final amount = int.tryParse(amountCtrl.text.trim());
                         if (amount == null || amount <= 0) return;
-                        final delta = isAdd ? amount : -amount;
-                        final desc = reasonCtrl.text.trim().isEmpty
-                            ? (isAdd ? 'Manual addition' : 'Manual deduction')
-                            : reasonCtrl.text.trim();
+                        final delta  = isAdd ? amount : -amount;
+                        final reason = reasonCtrl.text.trim();
+                        final desc   = isAdd ? 'Manual addition by admin' : 'Manual deduction by admin';
                         Navigator.of(sheetCtx).pop();
-                        onAdjust(delta, desc);
+                        onAdjust(delta, desc, reason: reason.isEmpty ? null : reason);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryDeep,
@@ -768,6 +768,7 @@ class _OrderRow extends StatelessWidget {
       case OrderStatus.outForDelivery: return const Color(0xFFE8F5E9);
       case OrderStatus.delivered:      return AppColors.primaryMist;
       case OrderStatus.cancelled:      return const Color(0xFFFFEBEE);
+      case OrderStatus.rejected:       return const Color(0xFFFFF3E0);
     }
   }
 
@@ -780,6 +781,7 @@ class _OrderRow extends StatelessWidget {
       case OrderStatus.outForDelivery: return AppColors.primaryMid;
       case OrderStatus.delivered:      return AppColors.primaryDeep;
       case OrderStatus.cancelled:      return AppColors.error;
+      case OrderStatus.rejected:       return Colors.deepOrange.shade700;
     }
   }
 

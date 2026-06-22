@@ -21,13 +21,19 @@ class SupabaseAppSettingsDataSource implements AppSettingsDataSource {
     final row = await _client
         .from('app_settings')
         .update({
-          'service_fee_value':             settings.serviceFeeValue,
-          'service_fee_enabled':           settings.serviceFeeEnabled,
-          'loyalty_max_points_per_order':  settings.loyaltyMaxPointsPerOrder,
-          'loyalty_referral_bonus':        settings.loyaltyReferralBonus,
-          'loyalty_referral_reward':       settings.loyaltyReferralReward,
-          'online_window_minutes':         settings.onlineWindowMinutes,
-          'updated_at':                    DateTime.now().toIso8601String(),
+          'service_fee_value':               settings.serviceFeeValue,
+          'service_fee_enabled':             settings.serviceFeeEnabled,
+          'loyalty_max_points_per_order':    settings.loyaltyMaxPointsPerOrder,
+          'loyalty_referral_bonus':          settings.loyaltyReferralBonus,
+          'loyalty_referral_reward':         settings.loyaltyReferralReward,
+          'online_window_minutes':           settings.onlineWindowMinutes,
+          'late_pending_minutes':            settings.latePendingMinutes,
+          'late_confirmed_minutes':          settings.lateConfirmedMinutes,
+          'late_preparing_minutes':          settings.latePreparingMinutes,
+          'late_prepared_minutes':           settings.latePreparedMinutes,
+          'late_out_for_delivery_minutes':   settings.lateOutForDeliveryMinutes,
+          'whatsapp_number':                 settings.whatsappNumber,
+          'updated_at':                      DateTime.now().toIso8601String(),
         })
         .eq('id', settings.id)
         .select()

@@ -75,6 +75,7 @@ class AnalyticsState extends Equatable {
   final DateTime toDate;
   final String? branchId;
   final int onlineWindowMinutes;
+  final bool showCompensationOnly;
 
   // Core KPIs
   final double totalSales;
@@ -141,6 +142,7 @@ class AnalyticsState extends Equatable {
     required this.toDate,
     this.branchId,
     this.onlineWindowMinutes = 3,
+    this.showCompensationOnly = false,
     this.totalSales = 0,
     this.orderVolume = 0,
     this.avgOrderValue = 0,
@@ -183,6 +185,7 @@ class AnalyticsState extends Equatable {
     String? branchId,
     bool clearBranch = false,
     int? onlineWindowMinutes,
+    bool? showCompensationOnly,
     double? totalSales,
     int? orderVolume,
     double? avgOrderValue,
@@ -223,6 +226,7 @@ class AnalyticsState extends Equatable {
         toDate:                toDate                ?? this.toDate,
         branchId:              clearBranch ? null    : branchId ?? this.branchId,
         onlineWindowMinutes:   onlineWindowMinutes   ?? this.onlineWindowMinutes,
+        showCompensationOnly:  showCompensationOnly  ?? this.showCompensationOnly,
         totalSales:            totalSales            ?? this.totalSales,
         orderVolume:           orderVolume           ?? this.orderVolume,
         avgOrderValue:         avgOrderValue         ?? this.avgOrderValue,
@@ -259,7 +263,7 @@ class AnalyticsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status, errorMessage, fromDate, toDate, branchId, onlineWindowMinutes,
+        status, errorMessage, fromDate, toDate, branchId, onlineWindowMinutes, showCompensationOnly,
         totalSales, orderVolume, avgOrderValue, totalCogs,
         totalDeliveryCharges, totalDiscounts, loyaltyDiscountTotal, promoDiscountTotal,
         freeDeliveryDiscountTotal, freeDeliveryCount, freeItemOrderCount,

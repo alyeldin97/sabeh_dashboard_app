@@ -18,6 +18,7 @@ abstract class LoyaltyDataSource {
     required String customerId,
     required int points,
     required String description,
+    String? reason,
     bool isPermanent,
   });
 

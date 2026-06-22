@@ -29,6 +29,12 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     int? loyaltyReferralBonus,
     int? loyaltyReferralReward,
     int? onlineWindowMinutes,
+    int? latePendingMinutes,
+    int? lateConfirmedMinutes,
+    int? latePreparingMinutes,
+    int? latePreparedMinutes,
+    int? lateOutForDeliveryMinutes,
+    String? whatsappNumber,
   }) async {
     final current = state.settings;
     if (current == null) return;
@@ -36,12 +42,19 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     try {
       final updated = await _repo.updateSettings(
         current.copyWith(
-          serviceFeeValue:          serviceFeeValue,
-          serviceFeeEnabled:        serviceFeeEnabled,
-          loyaltyMaxPointsPerOrder: loyaltyMaxPointsPerOrder,
-          loyaltyReferralBonus:     loyaltyReferralBonus,
-          loyaltyReferralReward:    loyaltyReferralReward,
-          onlineWindowMinutes:      onlineWindowMinutes,
+          serviceFeeValue:           serviceFeeValue,
+          serviceFeeEnabled:         serviceFeeEnabled,
+          loyaltyMaxPointsPerOrder:  loyaltyMaxPointsPerOrder,
+          loyaltyReferralBonus:      loyaltyReferralBonus,
+          loyaltyReferralReward:     loyaltyReferralReward,
+          onlineWindowMinutes:       onlineWindowMinutes,
+          latePendingMinutes:        latePendingMinutes,
+          lateConfirmedMinutes:      lateConfirmedMinutes,
+          latePreparingMinutes:      latePreparingMinutes,
+          latePreparedMinutes:       latePreparedMinutes,
+          lateOutForDeliveryMinutes: lateOutForDeliveryMinutes,
+          whatsappNumber:            whatsappNumber?.trim().isEmpty == true ? null : whatsappNumber?.trim(),
+          clearWhatsapp:             whatsappNumber?.trim().isEmpty == true,
         ),
       );
       emit(state.copyWith(status: AppSettingsStatus.loaded, settings: updated));

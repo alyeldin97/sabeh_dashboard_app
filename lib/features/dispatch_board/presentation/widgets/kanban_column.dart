@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
+import '../../../app_settings/data/model/app_settings_model.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../orders/data/model/order_model.dart';
 import '../../../staff_mgmt/data/model/staff_member.dart';
@@ -16,12 +17,14 @@ class KanbanColumn extends StatelessWidget {
     required this.drivers,
     this.branchId,
     this.isCompact = false,
+    this.settings,
   });
 
   final OrderStatus status;
   final List<OrderModel> orders;
   final List<StaffMember> drivers;
   final String? branchId;
+  final AppSettingsModel? settings;
 
   /// Compact mode = mobile tab body (no fixed width, no outer card border)
   final bool isCompact;
@@ -78,6 +81,7 @@ class KanbanColumn extends StatelessWidget {
                           order:    orders[i],
                           drivers:  drivers,
                           branchId: branchId,
+                          settings: settings,
                         ),
                       ),
               ),
@@ -123,6 +127,7 @@ class _ColumnHeader extends StatelessWidget {
       case OrderStatus.outForDelivery: return 'جاري التوصيل';
       case OrderStatus.delivered:      return 'وصل';
       case OrderStatus.cancelled:      return 'ملغي';
+      case OrderStatus.rejected:       return 'مرفوض';
     }
   }
 

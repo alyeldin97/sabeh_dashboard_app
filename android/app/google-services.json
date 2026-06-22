@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "292234202902",
+    "project_id": "sabe7-45121",
+    "storage_bucket": "sabe7-45121.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292234202902:android:8d6952684f17f300d04a37",
+        "android_client_info": {
+          "package_name": "com.sabeh.sabeh_dashboard_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4YtetftelHftwo6XkZ_9vccv2Tod1q4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292234202902:android:c21595615eba0f7bd04a37",
+        "android_client_info": {
+          "package_name": "com.sabeh.sabeh_user_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4YtetftelHftwo6XkZ_9vccv2Tod1q4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

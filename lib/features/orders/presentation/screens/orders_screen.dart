@@ -29,6 +29,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   late final TabController _tabs;
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
+  bool _showCompensationOnly = false;
 
   static const _statuses = [
     null,
@@ -38,11 +39,12 @@ class _OrdersScreenState extends State<OrdersScreen>
     OrderStatus.outForDelivery,
     OrderStatus.delivered,
     OrderStatus.cancelled,
+    OrderStatus.rejected,
   ];
   List<String> _labels(AppLocalizations l10n) => [
     l10n.ordersTabAll, l10n.ordersTabPending, l10n.ordersTabConfirmed,
     l10n.ordersTabPreparing, l10n.ordersTabDelivery, l10n.ordersTabDone,
-    l10n.ordersTabCancelled,
+    l10n.ordersTabCancelled, 'Rejected',
   ];
 
   @override
@@ -77,6 +79,15 @@ class _OrdersScreenState extends State<OrdersScreen>
           ),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.volunteer_activism_outlined,
+              color: _showCompensationOnly ? Colors.orange.shade200 : AppColors.white,
+              size: 22.r,
+            ),
+            tooltip: _showCompensationOnly ? 'Showing compensation orders' : 'Filter compensation',
+            onPressed: () => setState(() => _showCompensationOnly = !_showCompensationOnly),
+          ),
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: AppColors.white, size: 22.r),
             onPressed: () => context.read<OrdersCubit>().load(branchId: widget.branchId),
@@ -144,6 +155,26 @@ class _OrdersScreenState extends State<OrdersScreen>
 
           return Column(
             children: [
+              if (_showCompensationOnly)
+                Container(
+                  color: Colors.orange.shade50,
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+                  child: Row(
+                    children: [
+                      Icon(Icons.volunteer_activism_outlined, size: 14, color: Colors.orange.shade700),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Showing compensation orders only',
+                        style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.orange.shade800),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => setState(() => _showCompensationOnly = false),
+                        child: Icon(Icons.close_rounded, size: 16, color: Colors.orange.shade700),
+                      ),
+                    ],
+                  ),
+                ),
               Padding(
                 padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
                 child: TextField(
@@ -187,6 +218,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                     var orders = status == null
                         ? state.orders
                         : state.orders.where((o) => o.status == status).toList();
+                    if (_showCompensationOnly) {
+                      orders = orders.where((o) => o.isCompensation).toList();
+                    }
                     if (_searchQuery.isNotEmpty) {
                       orders = orders.where((o) {
                         return o.orderNumber.toString().contains(_searchQuery) ||
@@ -351,6 +385,7 @@ class _StatusChip extends StatelessWidget {
       case OrderStatus.outForDelivery: return const Color(0xFFE8F5E9);
       case OrderStatus.delivered:      return AppColors.primaryMist;
       case OrderStatus.cancelled:      return const Color(0xFFFFEBEE);
+      case OrderStatus.rejected:       return const Color(0xFFFFF3E0);
     }
   }
 
@@ -363,6 +398,7 @@ class _StatusChip extends StatelessWidget {
       case OrderStatus.outForDelivery: return AppColors.primaryMid;
       case OrderStatus.delivered:      return AppColors.primaryDeep;
       case OrderStatus.cancelled:      return AppColors.error;
+      case OrderStatus.rejected:       return Colors.deepOrange.shade700;
     }
   }
 

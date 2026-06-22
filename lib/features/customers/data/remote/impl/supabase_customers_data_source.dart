@@ -155,8 +155,9 @@ class SupabaseCustomersDataSource implements CustomersDataSource {
   Future<void> adjustLoyaltyPoints(
     String customerId,
     int delta,
-    String description,
-  ) async {
+    String description, {
+    String? reason,
+  }) async {
     AppLogger.net(_tag, 'adjustLoyaltyPoints', 'customerId=$customerId delta=$delta');
     try {
       await _supabase.from('loyalty_transactions').insert({
@@ -164,6 +165,7 @@ class SupabaseCustomersDataSource implements CustomersDataSource {
         'points':      delta,
         'type':        delta > 0 ? 'manual' : 'redeem',
         'description': description,
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
       });
 
       await _supabase.rpc('increment_loyalty_points', params: {

@@ -7,6 +7,8 @@ import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/helpers/responsive.dart';
 import '../../../../core/styling/colors.dart';
 import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
+import '../../../app_settings/data/model/app_settings_model.dart';
+import '../../../app_settings/presentation/cubits/app_settings_cubit.dart';
 import '../../../auth/data/model/staff_user.dart';
 import '../../../orders/data/model/order_model.dart';
 import '../../../staff_mgmt/data/model/staff_member.dart';
@@ -38,6 +40,9 @@ class DispatchBoardScreen extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => DependencyInjector().staffCubit..load(),
+        ),
+        BlocProvider(
+          create: (_) => DependencyInjector().appSettingsCubit..load(),
         ),
       ],
       child: _DispatchBoardView(branchId: branchId),
@@ -243,6 +248,13 @@ class _BoardTopBar extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  _TopBtn(
+                    icon: Icons.timer_outlined,
+                    label: state.showLateOnly ? 'Late Only ✓' : 'Late Filter',
+                    active: state.showLateOnly,
+                    onTap: () => cubit.toggleLateFilter(),
+                  ),
+                  const SizedBox(width: 8),
                   _TopBtn(
                     icon: Icons.assessment_outlined,
                     label: l10n.dispatchReports,
@@ -471,10 +483,11 @@ class _BoardTopBar extends StatelessWidget {
 }
 
 class _TopBtn extends StatelessWidget {
-  const _TopBtn({required this.icon, required this.label, required this.onTap});
+  const _TopBtn({required this.icon, required this.label, required this.onTap, this.active = false});
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
@@ -483,14 +496,16 @@ class _TopBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: active
+              ? Colors.orange.withValues(alpha: 0.85)
+              : Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white24),
+          border: Border.all(color: active ? Colors.orange : Colors.white24),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: Colors.white70),
+            Icon(icon, size: 14, color: active ? Colors.white : Colors.white70),
             const SizedBox(width: 4),
             Text(
               label,
@@ -504,6 +519,23 @@ class _TopBtn extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Late flag helper ──────────────────────────────────────────────────────────
+
+bool _isLate(OrderModel order, AppSettingsModel? settings) {
+  if (settings == null) return false;
+  int? threshold;
+  switch (order.status) {
+    case OrderStatus.pending:        threshold = settings.latePendingMinutes; break;
+    case OrderStatus.confirmed:      threshold = settings.lateConfirmedMinutes; break;
+    case OrderStatus.preparing:      threshold = settings.latePreparingMinutes; break;
+    case OrderStatus.prepared:       threshold = settings.latePreparedMinutes; break;
+    case OrderStatus.outForDelivery: threshold = settings.lateOutForDeliveryMinutes; break;
+    default: return false;
+  }
+  final minutesInStatus = DateTime.now().difference(order.statusChangedAt).inMinutes;
+  return minutesInStatus >= threshold;
 }
 
 // ── Web horizontal board ──────────────────────────────────────────────────────
@@ -520,6 +552,7 @@ class _WebBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.read<AppSettingsCubit>().state.settings;
     return ScrollbarTheme(
       data: ScrollbarThemeData(
         thumbColor: WidgetStateProperty.all(AppColors.primaryMid.withValues(alpha: 0.4)),
@@ -530,12 +563,16 @@ class _WebBoard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: OrderStatus.values.map((s) {
-            final orders = state.filteredColumn(s);
+            var orders = state.filteredColumn(s);
+            if (state.showLateOnly) {
+              orders = orders.where((o) => _isLate(o, settings)).toList();
+            }
             return KanbanColumn(
               status:   s,
               orders:   orders,
               drivers:  drivers,
               branchId: branchId,
+              settings: settings,
             );
           }).toList(),
         ),
@@ -624,16 +661,21 @@ class _MobileBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.read<AppSettingsCubit>().state.settings;
     return TabBarView(
       controller: tabCtrl,
       children: OrderStatus.values.map((s) {
-        final orders = state.filteredColumn(s);
+        var orders = state.filteredColumn(s);
+        if (state.showLateOnly) {
+          orders = orders.where((o) => _isLate(o, settings)).toList();
+        }
         return KanbanColumn(
           status:    s,
           orders:    orders,
           drivers:   drivers,
           branchId:  branchId,
           isCompact: true,
+          settings:  settings,
         );
       }).toList(),
     );

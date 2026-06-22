@@ -92,12 +92,13 @@ class CustomersCubit extends Cubit<CustomersState> {
   Future<void> adjustPoints(
     String customerId,
     int delta,
-    String description,
-  ) async {
+    String description, {
+    String? reason,
+  }) async {
     AppLogger.i(_tag, 'adjustPoints id=$customerId delta=$delta');
     emit(state.copyWith(actionStatus: CustomersStatus.loading, actionError: null));
     try {
-      await _repo.adjustLoyaltyPoints(customerId, delta, description);
+      await _repo.adjustLoyaltyPoints(customerId, delta, description, reason: reason);
       AppLogger.i(_tag, 'adjustPoints success, reloading detail');
       emit(state.copyWith(actionStatus: CustomersStatus.success));
       await loadCustomerDetail(customerId);

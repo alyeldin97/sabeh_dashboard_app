@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/helpers/order_invoice_pdf.dart';
 import '../../../../core/styling/colors.dart';
 import 'package:sabeh_dashboard_app/l10n/app_localizations.dart';
+import '../../../app_settings/data/model/app_settings_model.dart';
 import '../../../auth/data/model/staff_user.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../orders/data/model/order_history_model.dart';
@@ -26,6 +29,7 @@ Color statusColor(OrderStatus s) {
     case OrderStatus.outForDelivery: return Colors.purple;
     case OrderStatus.delivered:      return Colors.green;
     case OrderStatus.cancelled:      return Colors.red;
+    case OrderStatus.rejected:       return Colors.deepPurple;
   }
 }
 
@@ -38,6 +42,7 @@ String statusLabel(OrderStatus s) {
     case OrderStatus.outForDelivery: return 'Out for Delivery · جاري التوصيل';
     case OrderStatus.delivered:      return 'Delivered · وصل';
     case OrderStatus.cancelled:      return 'Cancelled · ملغي';
+    case OrderStatus.rejected:       return 'Rejected · مرفوض';
   }
 }
 
@@ -88,11 +93,30 @@ class OrderDispatchCard extends StatelessWidget {
     required this.order,
     required this.drivers,
     this.branchId,
+    this.settings,
   });
 
   final OrderModel order;
   final List<StaffMember> drivers;
   final String? branchId;
+  final AppSettingsModel? settings;
+
+  bool get _isLate {
+    if (settings == null) return false;
+    int? threshold;
+    switch (order.status) {
+      case OrderStatus.pending:        threshold = settings!.latePendingMinutes; break;
+      case OrderStatus.confirmed:      threshold = settings!.lateConfirmedMinutes; break;
+      case OrderStatus.preparing:      threshold = settings!.latePreparingMinutes; break;
+      case OrderStatus.prepared:       threshold = settings!.latePreparedMinutes; break;
+      case OrderStatus.outForDelivery: threshold = settings!.lateOutForDeliveryMinutes; break;
+      default: return false;
+    }
+    return DateTime.now().difference(order.statusChangedAt).inMinutes >= threshold;
+  }
+
+  int get _minutesInStatus =>
+      DateTime.now().difference(order.statusChangedAt).inMinutes;
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +177,52 @@ class OrderDispatchCard extends StatelessWidget {
                     ),
                   ),
                   _PayBadge(order.paymentMethod),
+                  if (order.isCompensation) ...[
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.orange.shade300),
+                      ),
+                      child: Text(
+                        'COMP',
+                        style: GoogleFonts.nunito(
+                          fontSize: 9, fontWeight: FontWeight.w800,
+                          color: Colors.orange.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (_isLate) ...[
+                    const SizedBox(width: 4),
+                    Tooltip(
+                      message: 'Late — ${_minutesInStatus}m in this status',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.red.shade400),
+                        ),
+                        child: Text(
+                          'LATE',
+                          style: GoogleFonts.nunito(
+                            fontSize: 9, fontWeight: FontWeight.w800,
+                            color: Colors.red.shade800,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (order.transactionInvoiceImage != null) ...[
+                    const SizedBox(width: 4),
+                    Tooltip(
+                      message: 'Invoice uploaded',
+                      child: Icon(Icons.receipt_long_rounded, size: 13, color: Colors.teal.shade600),
+                    ),
+                  ],
                   const SizedBox(width: 6),
                   Text(
                     fmt.format(order.createdAt.toLocal()),
@@ -574,9 +644,31 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet>
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  dateFmt.format(order.createdAt.toLocal()),
-                  style: GoogleFonts.nunito(fontSize: 12, color: Colors.grey),
+                Row(
+                  children: [
+                    Text(
+                      dateFmt.format(order.createdAt.toLocal()),
+                      style: GoogleFonts.nunito(fontSize: 12, color: Colors.grey),
+                    ),
+                    if (order.isCompensation) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.orange.shade300),
+                        ),
+                        child: Text(
+                          'COMPENSATION',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10, fontWeight: FontWeight.w800,
+                            color: Colors.orange.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 12),
                 // Quick action row: call + maps + paid toggle
@@ -688,6 +780,25 @@ class _QuickActions extends StatelessWidget {
               },
             ),
           ),
+        if (canMarkPaid && (role == StaffRole.admin || role == StaffRole.manager || role == StaffRole.deliveryManager)) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: _ActionBtn(
+              icon: order.isCompensation ? Icons.receipt_long_outlined : Icons.volunteer_activism_outlined,
+              label: order.isCompensation ? 'Set Normal' : 'Compensation',
+              color: order.isCompensation ? Colors.grey.shade600 : Colors.orange.shade700,
+              onTap: () async {
+                final newType = order.isCompensation ? OrderType.normal : OrderType.compensation;
+                Navigator.pop(context);
+                await context.read<DispatchBoardCubit>().ordersRepo.updateOrderFields(
+                  orderId:   order.id,
+                  orderType: newType.value,
+                );
+                context.read<DispatchBoardCubit>().load(branchId: branchId);
+              },
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -768,6 +879,7 @@ class _DetailsTab extends StatelessWidget {
                 'EGP ${order.amountDue.toStringAsFixed(2)}'),
           _DepositEditor(order: order, branchId: branchId, role: role),
           _StaffNoteEditor(order: order, branchId: branchId, role: role),
+          _TransactionInvoiceSection(order: order, branchId: branchId, role: role),
           if (order.userPaidDeliveryFees > 0)
             _InfoRow(Icons.local_shipping_outlined, l10n.dispatchCardDeliveryFee,
                 'EGP ${order.userPaidDeliveryFees.toStringAsFixed(2)}'),
@@ -1503,6 +1615,185 @@ class _StaffNoteEditorState extends State<_StaffNoteEditor> {
     );
   }
 }
+
+// ── Transaction Invoice Section ───────────────────────────────────────────────
+
+class _TransactionInvoiceSection extends StatefulWidget {
+  const _TransactionInvoiceSection({
+    required this.order,
+    required this.role,
+    this.branchId,
+  });
+  final OrderModel order;
+  final StaffRole role;
+  final String? branchId;
+
+  @override
+  State<_TransactionInvoiceSection> createState() =>
+      _TransactionInvoiceSectionState();
+}
+
+class _TransactionInvoiceSectionState
+    extends State<_TransactionInvoiceSection> {
+  bool _uploading = false;
+
+  Future<void> _pickAndUpload() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (picked == null || !mounted) return;
+
+    final bytes = await picked.readAsBytes();
+    if (!mounted) return;
+
+    final ext = picked.path.split('.').last.toLowerCase();
+    final safeExt = ['jpg', 'jpeg', 'png', 'webp'].contains(ext) ? ext : 'jpg';
+
+    final user   = context.read<AuthCubit>().state.user;
+    final cubit  = context.read<DispatchBoardCubit>();
+
+    setState(() => _uploading = true);
+    try {
+      await cubit.uploadTransactionInvoice(
+        orderId:   widget.order.id,
+        bytes:     bytes,
+        extension: safeExt,
+        branchId:  widget.branchId,
+        actorId:   user?.id,
+        actorName: user?.name,
+        actorRole: user?.role.value,
+      );
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  void _viewFullImage(BuildContext context, String url) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(12),
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              child: CachedNetworkImage(
+                imageUrl: url,
+                fit: BoxFit.contain,
+                placeholder: (_, __) =>
+                    const Center(child: CircularProgressIndicator()),
+                errorWidget: (_, __, ___) =>
+                    const Center(child: Icon(Icons.broken_image, color: Colors.white)),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = widget.order.transactionInvoiceImage;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.receipt_long_rounded, size: 16,
+                  color: imageUrl != null ? Colors.teal.shade600 : Colors.grey),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 90,
+                child: Text(
+                  'Invoice',
+                  style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      color: imageUrl != null
+                          ? Colors.teal.shade700
+                          : Colors.grey.shade600),
+                ),
+              ),
+              if (_uploading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else if (imageUrl != null)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _viewFullImage(context, imageUrl),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          height: 80,
+                          color: Colors.grey.shade100,
+                          child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          height: 80,
+                          color: Colors.grey.shade100,
+                          child: const Icon(Icons.broken_image),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  '—',
+                  style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade400),
+                ),
+              if (!_uploading && widget.role != StaffRole.deliveryUser) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: _pickAndUpload,
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                  ),
+                  child: Text(
+                    imageUrl != null ? 'Replace' : 'Upload',
+                    style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        color: Colors.teal,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
   const _InfoRow(this.icon, this.label, this.value);

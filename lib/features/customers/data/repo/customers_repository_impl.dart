@@ -29,8 +29,8 @@ class CustomersRepositoryImpl implements CustomersRepository {
       _src.updateInternalNotes(customerId, notes);
 
   @override
-  Future<void> adjustLoyaltyPoints(String customerId, int delta, String description) =>
-      _src.adjustLoyaltyPoints(customerId, delta, description);
+  Future<void> adjustLoyaltyPoints(String customerId, int delta, String description, {String? reason}) =>
+      _src.adjustLoyaltyPoints(customerId, delta, description, reason: reason);
 
   @override
   Future<Customer> createCustomer({required String name, String? phone, String? email}) =>

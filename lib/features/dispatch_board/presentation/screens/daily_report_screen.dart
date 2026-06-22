@@ -117,7 +117,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
 
   Future<double> _computeCogs(List<OrderModel> orders) async {
     final productIds = orders
-        .where((o) => o.status != OrderStatus.cancelled)
+        .where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.rejected)
         .expand((o) => o.items)
         .where((i) => i.productId != null)
         .map((i) => i.productId!)
@@ -139,7 +139,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       }
 
       double total = 0;
-      for (final order in orders.where((o) => o.status != OrderStatus.cancelled)) {
+      for (final order in orders.where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.rejected)) {
         for (final item in order.items) {
           if (item.productId != null) {
             final pct = cogsMap[item.productId];
@@ -162,10 +162,10 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       if (driverOrders.isEmpty) continue;
 
       final cashOrders = driverOrders
-          .where((o) => o.status != OrderStatus.cancelled && o.isCash)
+          .where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.rejected && o.isCash)
           .toList();
       final instapayOrders = driverOrders
-          .where((o) => o.status != OrderStatus.cancelled && !o.isCash)
+          .where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.rejected && !o.isCash)
           .toList();
       final totalShipping  = driverOrders.fold(0.0, (s, o) => s + o.userPaidDeliveryFees);
       final totalDeposits  = cashOrders.fold(0.0, (s, o) => s + o.deposit);
@@ -193,7 +193,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
   // ── Totals ─────────────────────────────────────────────────────────────────
 
   List<OrderModel> get _activeOrders =>
-      _orders.where((o) => o.status != OrderStatus.cancelled).toList();
+      _orders.where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.rejected).toList();
 
   double get _totalSales =>
       _activeOrders.fold(0.0, (s, o) => s + o.totalPrice);

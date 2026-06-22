@@ -1,0 +1,2150 @@
+{
+  "@@locale": "en",
+
+  "authAppTitle": "Sabeh Dashboard",
+  "@authAppTitle": { "description": "App title shown on login screen" },
+
+  "authSubtitle": "Staff portal — sign in to continue",
+  "@authSubtitle": { "description": "Login screen subtitle" },
+
+  "authPhoneLabel": "Phone Number",
+  "@authPhoneLabel": { "description": "Phone number field label" },
+
+  "authPhoneError": "Enter a valid phone number",
+  "@authPhoneError": { "description": "Phone field validation error" },
+
+  "authPasswordLabel": "Password",
+  "@authPasswordLabel": { "description": "Password field label" },
+
+  "authPasswordError": "Enter your password",
+  "@authPasswordError": { "description": "Password field validation error" },
+
+  "authSignIn": "Sign In",
+  "@authSignIn": { "description": "Sign in button label" },
+
+  "navHome": "Home",
+  "@navHome": {},
+
+  "navOrders": "Orders",
+  "@navOrders": {},
+
+  "navDelivery": "Delivery",
+  "@navDelivery": {},
+
+  "navDispatch": "Dispatch",
+  "@navDispatch": {},
+
+  "navAnalytics": "Analytics",
+  "@navAnalytics": {},
+
+  "navProducts": "Products",
+  "@navProducts": {},
+
+  "navCategories": "Categories",
+  "@navCategories": {},
+
+  "navBranches": "Branches",
+  "@navBranches": {},
+
+  "navZones": "Zones",
+  "@navZones": {},
+
+  "navSettings": "Settings",
+  "@navSettings": {},
+
+  "navLoyalty": "Loyalty",
+  "@navLoyalty": {},
+
+  "navCustomers": "Customers",
+  "@navCustomers": {},
+
+  "navStaff": "Staff",
+  "@navStaff": {},
+
+  "navPromos": "Promos",
+  "@navPromos": {},
+
+  "navBanners": "Banners",
+  "@navBanners": {},
+
+  "navAds": "Ads",
+  "@navAds": {},
+
+  "navCsv": "CSV",
+  "@navCsv": {},
+
+  "navMyRoutes": "My Routes",
+  "@navMyRoutes": {},
+
+  "navSignOut": "Sign Out",
+  "@navSignOut": {},
+
+  "navStaffFallback": "Staff",
+  "@navStaffFallback": {},
+
+  "homeGlance": "Today at a glance",
+  "@homeGlance": {},
+
+  "homeTotalOrders": "Total Orders",
+  "@homeTotalOrders": {},
+
+  "homePending": "Pending",
+  "@homePending": {},
+
+  "homeInProgress": "In Progress",
+  "@homeInProgress": {},
+
+  "homeDelivered": "Delivered",
+  "@homeDelivered": {},
+
+  "homeActiveOrders": "Active orders",
+  "@homeActiveOrders": {},
+
+  "homeAllCaughtUp": "All caught up!",
+  "@homeAllCaughtUp": {},
+
+  "homeNoActiveOrders": "No active orders right now",
+  "@homeNoActiveOrders": {},
+
+  "homeGoodMorning": "Good morning ☀️",
+  "@homeGoodMorning": {},
+
+  "homeGoodAfternoon": "Good afternoon 🌤",
+  "@homeGoodAfternoon": {},
+
+  "homeGoodEvening": "Good evening 🌙",
+  "@homeGoodEvening": {},
+
+  "analyticsTitle": "Analytics",
+  "@analyticsTitle": {},
+
+  "analyticsRefresh": "Refresh",
+  "@analyticsRefresh": {},
+
+  "analyticsFilters": "Filters",
+  "@analyticsFilters": {},
+
+  "analyticsToday": "Today",
+  "@analyticsToday": {},
+
+  "analytics7Days": "7 Days",
+  "@analytics7Days": {},
+
+  "analytics30Days": "30 Days",
+  "@analytics30Days": {},
+
+  "analyticsThisMonth": "This Month",
+  "@analyticsThisMonth": {},
+
+  "analyticsCustom": "Custom",
+  "@analyticsCustom": {},
+
+  "analyticsAllBranches": "All Branches",
+  "@analyticsAllBranches": {},
+
+  "analyticsOnlineNow": "Online Now",
+  "@analyticsOnlineNow": {},
+
+  "analyticsLive": "Live",
+  "@analyticsLive": {},
+
+  "analyticsActiveInLast": "Active in last {minutes} min",
+  "@analyticsActiveInLast": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+
+  "analyticsTotalSales": "Total Sales",
+  "@analyticsTotalSales": {},
+
+  "analyticsOrders": "Orders",
+  "@analyticsOrders": {},
+
+  "analyticsTotalCogs": "Total COGS",
+  "@analyticsTotalCogs": {},
+
+  "analyticsGrossProfit": "Gross Profit",
+  "@analyticsGrossProfit": {},
+
+  "analyticsAvgOrderValue": "Avg Order Value",
+  "@analyticsAvgOrderValue": {},
+
+  "analyticsDiscountsFreeItems": "Discounts & Free Items",
+  "@analyticsDiscountsFreeItems": {},
+
+  "analyticsDeliveryCharges": "Delivery Charges",
+  "@analyticsDeliveryCharges": {},
+
+  "analyticsTotalDiscounts": "Total Discounts",
+  "@analyticsTotalDiscounts": {},
+
+  "analyticsLoyaltyDiscounts": "Loyalty Discounts",
+  "@analyticsLoyaltyDiscounts": {},
+
+  "analyticsPromoDiscounts": "Promo Discounts",
+  "@analyticsPromoDiscounts": {},
+
+  "analyticsFreeDeliveryValue": "Free Delivery Value",
+  "@analyticsFreeDeliveryValue": {},
+
+  "analyticsFreeDelivery": "Free Delivery",
+  "@analyticsFreeDelivery": {},
+
+  "analyticsFreeItems": "Free Items",
+  "@analyticsFreeItems": {},
+
+  "analyticsFulfillment": "Fulfillment",
+  "@analyticsFulfillment": {},
+
+  "analyticsCancellation": "Cancellation",
+  "@analyticsCancellation": {},
+
+  "analyticsReturning": "Returning",
+  "@analyticsReturning": {},
+
+  "analyticsCustomerMetrics": "Customer Metrics",
+  "@analyticsCustomerMetrics": {},
+
+  "analyticsUniqueCustomers": "Unique Customers",
+  "@analyticsUniqueCustomers": {},
+
+  "analyticsDailySales": "Daily Sales",
+  "@analyticsDailySales": {},
+
+  "analyticsSalesByZone": "Sales by Delivery Zone",
+  "@analyticsSalesByZone": {},
+
+  "analyticsOrdersByStatus": "Orders by Status",
+  "@analyticsOrdersByStatus": {},
+
+  "analyticsByRevenue": "By Revenue",
+  "@analyticsByRevenue": {},
+
+  "analyticsByQuantity": "By Quantity",
+  "@analyticsByQuantity": {},
+
+  "analyticsByViews": "By Views",
+  "@analyticsByViews": {},
+
+  "analyticsByAddToCart": "By Add-to-Cart",
+  "@analyticsByAddToCart": {},
+
+  "analyticsShowLess": "Show less",
+  "@analyticsShowLess": {},
+
+  "analyticsNoData": "No data",
+  "@analyticsNoData": {},
+
+  "analyticsDeviceType": "Sessions by Device Type",
+  "@analyticsDeviceType": {},
+
+  "analyticsAbandonedCarts": "Abandoned Checkouts",
+  "@analyticsAbandonedCarts": {},
+
+  "analyticsCartItems": "CART ITEMS",
+  "@analyticsCartItems": {},
+
+  "analyticsProduct": "Product",
+  "@analyticsProduct": {},
+
+  "analyticsViews": "Views",
+  "@analyticsViews": {},
+
+  "analyticsCarts": "Carts",
+  "@analyticsCarts": {},
+
+  "analyticsEventTracking": "Event Tracking",
+  "@analyticsEventTracking": {},
+
+  "analyticsFailedLoad": "Failed to load analytics",
+  "@analyticsFailedLoad": {},
+
+  "analyticsRetry": "Retry",
+  "@analyticsRetry": {},
+
+  "analyticsGuest": "Guest",
+  "@analyticsGuest": {},
+
+  "ordersTitle": "Orders",
+  "@ordersTitle": {},
+
+  "ordersNewOrder": "New Order",
+  "@ordersNewOrder": {},
+
+  "ordersTabAll": "All",
+  "@ordersTabAll": {},
+
+  "ordersTabPending": "Pending",
+  "@ordersTabPending": {},
+
+  "ordersTabConfirmed": "Confirmed",
+  "@ordersTabConfirmed": {},
+
+  "ordersTabPreparing": "Preparing",
+  "@ordersTabPreparing": {},
+
+  "ordersTabDelivery": "Delivery",
+  "@ordersTabDelivery": {},
+
+  "ordersTabDone": "Done",
+  "@ordersTabDone": {},
+
+  "ordersTabCancelled": "Cancelled",
+  "@ordersTabCancelled": {},
+
+  "ordersFailedLoad": "Failed to load orders",
+  "@ordersFailedLoad": {},
+
+  "ordersRetry": "Retry",
+  "@ordersRetry": {},
+
+  "ordersEmpty": "No orders here",
+  "@ordersEmpty": {},
+
+  "orderDetailsOrderInfo": "Order Info",
+  "@orderDetailsOrderInfo": {},
+
+  "orderDetailsCreated": "Created",
+  "@orderDetailsCreated": {},
+
+  "orderDetailsPayment": "Payment",
+  "@orderDetailsPayment": {},
+
+  "orderDetailsStatus": "Status",
+  "@orderDetailsStatus": {},
+
+  "orderDetailsAddress": "Address",
+  "@orderDetailsAddress": {},
+
+  "orderDetailsNotes": "Notes",
+  "@orderDetailsNotes": {},
+
+  "orderDetailsPromoCode": "Promo Code",
+  "@orderDetailsPromoCode": {},
+
+  "orderDetailsDriver": "Driver",
+  "@orderDetailsDriver": {},
+
+  "orderDetailsSummary": "Summary",
+  "@orderDetailsSummary": {},
+
+  "orderDetailsDeliveryFee": "Delivery Fee",
+  "@orderDetailsDeliveryFee": {},
+
+  "orderDetailsServiceFee": "Service Fee",
+  "@orderDetailsServiceFee": {},
+
+  "orderDetailsDelivery": "Delivery",
+  "@orderDetailsDelivery": {},
+
+  "orderDetailsTotal": "Total",
+  "@orderDetailsTotal": {},
+
+  "orderDetailsDeposit": "Deposit (عربون)",
+  "@orderDetailsDeposit": {},
+
+  "orderDetailsAmountDue": "Amount Due",
+  "@orderDetailsAmountDue": {},
+
+  "orderDetailsRewardsApplied": "Rewards Applied",
+  "@orderDetailsRewardsApplied": {},
+
+  "orderDetailsSpendMilestone": "Spend Milestone",
+  "@orderDetailsSpendMilestone": {},
+
+  "orderDetailsPointsRedeemed": "Points Redeemed",
+  "@orderDetailsPointsRedeemed": {},
+
+  "orderDetailsPointsEarned": "Points Earned",
+  "@orderDetailsPointsEarned": {},
+
+  "orderDetailsFree": "FREE",
+  "@orderDetailsFree": {},
+
+  "orderDetailsPrintInvoice": "Print Invoice",
+  "@orderDetailsPrintInvoice": {},
+
+  "orderDetailsCancelOrder": "Cancel Order",
+  "@orderDetailsCancelOrder": {},
+
+  "orderDetailsCancelConfirm": "Are you sure you want to cancel this order?",
+  "@orderDetailsCancelConfirm": {},
+
+  "orderDetailsNo": "No",
+  "@orderDetailsNo": {},
+
+  "orderDetailsConfirmOrder": "Confirm Order",
+  "@orderDetailsConfirmOrder": {},
+
+  "orderDetailsStartPreparing": "Start Preparing",
+  "@orderDetailsStartPreparing": {},
+
+  "orderDetailsSendForDelivery": "Send for Delivery",
+  "@orderDetailsSendForDelivery": {},
+
+  "orderDetailsMarkDelivered": "Mark Delivered",
+  "@orderDetailsMarkDelivered": {},
+
+  "createOrderTitle": "New Order",
+  "@createOrderTitle": {},
+
+  "createOrderStepCustomer": "Customer",
+  "@createOrderStepCustomer": {},
+
+  "createOrderStepProducts": "Products",
+  "@createOrderStepProducts": {},
+
+  "createOrderStepDetails": "Details",
+  "@createOrderStepDetails": {},
+
+  "createOrderStepConfirm": "Confirm",
+  "@createOrderStepConfirm": {},
+
+  "createOrderBack": "Back",
+  "@createOrderBack": {},
+
+  "createOrderNext": "Next",
+  "@createOrderNext": {},
+
+  "createOrderPlace": "Place Order",
+  "@createOrderPlace": {},
+
+  "createOrderSuccess": "Order placed successfully!",
+  "@createOrderSuccess": {},
+
+  "createOrderFailed": "Failed to place order",
+  "@createOrderFailed": {},
+
+  "createOrderSearchCustomer": "Search Existing Customer",
+  "@createOrderSearchCustomer": {},
+
+  "createOrderSearchHint": "Name, phone, or email…",
+  "@createOrderSearchHint": {},
+
+  "createOrderNewCustomer": "Or Create New Customer",
+  "@createOrderNewCustomer": {},
+
+  "createOrderFullName": "Full Name",
+  "@createOrderFullName": {},
+
+  "createOrderFullNameHint": "Customer full name",
+  "@createOrderFullNameHint": {},
+
+  "createOrderPhone": "Phone (optional)",
+  "@createOrderPhone": {},
+
+  "createOrderUseAsCustomer": "Use as Customer",
+  "@createOrderUseAsCustomer": {},
+
+  "createOrderAddCustomItem": "Add Custom Item",
+  "@createOrderAddCustomItem": {},
+
+  "createOrderItemName": "Item Name *",
+  "@createOrderItemName": {},
+
+  "createOrderItemPrice": "Price (EGP) *",
+  "@createOrderItemPrice": {},
+
+  "createOrderAddToOrder": "Add to Order",
+  "@createOrderAddToOrder": {},
+
+  "createOrderSearchProducts": "Search products…",
+  "@createOrderSearchProducts": {},
+
+  "createOrderSelectedItems": "Selected Items",
+  "@createOrderSelectedItems": {},
+
+  "createOrderCustomItem": "Custom Item",
+  "@createOrderCustomItem": {},
+
+  "createOrderAllProducts": "All Products",
+  "@createOrderAllProducts": {},
+
+  "createOrderBranch": "Branch *",
+  "@createOrderBranch": {},
+
+  "createOrderSelectBranch": "Select branch",
+  "@createOrderSelectBranch": {},
+
+  "createOrderDeliveryAddress": "Delivery Address",
+  "@createOrderDeliveryAddress": {},
+
+  "createOrderNewAddress": "New Address",
+  "@createOrderNewAddress": {},
+
+  "createOrderSaveAddress": "Save & Use Address",
+  "@createOrderSaveAddress": {},
+
+  "createOrderDeliveryZone": "Delivery Zone",
+  "@createOrderDeliveryZone": {},
+
+  "createOrderSelectZone": "Select delivery zone",
+  "@createOrderSelectZone": {},
+
+  "createOrderNoZone": "No delivery zone",
+  "@createOrderNoZone": {},
+
+  "createOrderAddressLabel": "Label",
+  "@createOrderAddressLabel": {},
+
+  "createOrderAddressLabelHint": "e.g. Home, Work",
+  "@createOrderAddressLabelHint": {},
+
+  "createOrderStreet": "Street *",
+  "@createOrderStreet": {},
+
+  "createOrderStreetHint": "Street name / area",
+  "@createOrderStreetHint": {},
+
+  "createOrderBuilding": "Building",
+  "@createOrderBuilding": {},
+
+  "createOrderBuildingHint": "No.",
+  "@createOrderBuildingHint": {},
+
+  "createOrderFloor": "Floor",
+  "@createOrderFloor": {},
+
+  "createOrderFloorHint": "No.",
+  "@createOrderFloorHint": {},
+
+  "createOrderApt": "Apt",
+  "@createOrderApt": {},
+
+  "createOrderAptHint": "No.",
+  "@createOrderAptHint": {},
+
+  "createOrderLandmark": "Landmark",
+  "@createOrderLandmark": {},
+
+  "createOrderLandmarkHint": "Near…",
+  "@createOrderLandmarkHint": {},
+
+  "createOrderDiscount": "Discount (EGP)",
+  "@createOrderDiscount": {},
+
+  "createOrderOrderNotes": "Order Notes",
+  "@createOrderOrderNotes": {},
+
+  "createOrderNotesHint": "Any special instructions…",
+  "@createOrderNotesHint": {},
+
+  "createOrderPaymentMethod": "Payment Method",
+  "@createOrderPaymentMethod": {},
+
+  "createOrderCash": "Cash",
+  "@createOrderCash": {},
+
+  "createOrderInstapay": "Instapay",
+  "@createOrderInstapay": {},
+
+  "createOrderCartSummary": "Cart: {count} item(s)",
+  "@createOrderCartSummary": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "createOrderSubtotal": "Subtotal: EGP {amount}",
+  "@createOrderSubtotal": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "createOrderSummaryTitle": "Order Summary",
+  "@createOrderSummaryTitle": {},
+
+  "createOrderSummaryCustomer": "Customer",
+  "@createOrderSummaryCustomer": {},
+
+  "createOrderSummaryDeliveryInfo": "Delivery Info",
+  "@createOrderSummaryDeliveryInfo": {},
+
+  "createOrderSummaryItems": "Items ({count})",
+  "@createOrderSummaryItems": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "createOrderSummaryPayment": "Payment",
+  "@createOrderSummaryPayment": {},
+
+  "createOrderSummaryNotes": "Notes",
+  "@createOrderSummaryNotes": {},
+
+  "createOrderSummaryBranch": "Branch",
+  "@createOrderSummaryBranch": {},
+
+  "createOrderSummaryZone": "Zone",
+  "@createOrderSummaryZone": {},
+
+  "createOrderSummaryAddress": "Address",
+  "@createOrderSummaryAddress": {},
+
+  "createOrderSummaryMethod": "Method",
+  "@createOrderSummaryMethod": {},
+
+  "createOrderSummarySubtotal": "Subtotal",
+  "@createOrderSummarySubtotal": {},
+
+  "createOrderSummaryDelivery": "Delivery",
+  "@createOrderSummaryDelivery": {},
+
+  "createOrderSummaryDiscount": "Discount",
+  "@createOrderSummaryDiscount": {},
+
+  "createOrderSummaryTotal": "Total",
+  "@createOrderSummaryTotal": {},
+
+  "productsTitle": "Products",
+  "@productsTitle": {},
+
+  "productsAddProduct": "Add Product",
+  "@productsAddProduct": {},
+
+  "productsSearchHint": "Search products...",
+  "@productsSearchHint": {},
+
+  "productFormEditTitle": "Edit Product",
+  "@productFormEditTitle": {},
+
+  "productFormNewTitle": "New Product",
+  "@productFormNewTitle": {},
+
+  "productFormSave": "Save",
+  "@productFormSave": {},
+
+  "productFormActive": "Active",
+  "@productFormActive": {},
+
+  "productFormActiveSubtitle": "Visible to customers",
+  "@productFormActiveSubtitle": {},
+
+  "productFormBestSeller": "Best Seller 🔥",
+  "@productFormBestSeller": {},
+
+  "productFormBestSellerSubtitle": "Show in Top Sellers section on home screen",
+  "@productFormBestSellerSubtitle": {},
+
+  "productFormAddOption": "Add Option",
+  "@productFormAddOption": {},
+
+  "productFormStock": "Stock:",
+  "@productFormStock": {},
+
+  "productFormPricePreview": "Price Preview",
+  "@productFormPricePreview": {},
+
+  "productFormRelatedProducts": "Related Products",
+  "@productFormRelatedProducts": {},
+
+  "productFormAdd": "Add",
+  "@productFormAdd": {},
+
+  "productFormNoRelated": "No related products added yet.",
+  "@productFormNoRelated": {},
+
+  "productFormSelectRelated": "Select Related Product",
+  "@productFormSelectRelated": {},
+
+  "productFormNoBranches": "No branches found.",
+  "@productFormNoBranches": {},
+
+  "productFormNone": "None",
+  "@productFormNone": {},
+
+  "categoriesTitle": "Categories",
+  "@categoriesTitle": {},
+
+  "categoriesAddCategory": "Add Category",
+  "@categoriesAddCategory": {},
+
+  "categoriesSearchHint": "Search categories...",
+  "@categoriesSearchHint": {},
+
+  "categoriesDragReorder": "Drag to reorder",
+  "@categoriesDragReorder": {},
+
+  "categoriesEmpty": "No categories yet",
+  "@categoriesEmpty": {},
+
+  "categoriesEmptyHint": "Tap + to add your first category",
+  "@categoriesEmptyHint": {},
+
+  "categoriesDeleteTitle": "Delete Category",
+  "@categoriesDeleteTitle": {},
+
+  "categoriesDeleteConfirm": "Remove \"{name}\"? This will deactivate it.",
+  "@categoriesDeleteConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "categoriesCancel": "Cancel",
+  "@categoriesCancel": {},
+
+  "categoriesDelete": "Delete",
+  "@categoriesDelete": {},
+
+  "categoriesInactive": "Inactive",
+  "@categoriesInactive": {},
+
+  "categoryFormEditTitle": "Edit Category",
+  "@categoryFormEditTitle": {},
+
+  "categoryFormNewTitle": "New Category",
+  "@categoryFormNewTitle": {},
+
+  "categoryFormSave": "Save",
+  "@categoryFormSave": {},
+
+  "categoryFormBranches": "Branches",
+  "@categoryFormBranches": {},
+
+  "categoryFormName": "Name",
+  "@categoryFormName": {},
+
+  "categoryFormMedia": "Media",
+  "@categoryFormMedia": {},
+
+  "categoryFormVisibility": "Visibility",
+  "@categoryFormVisibility": {},
+
+  "categoryFormNameEn": "Category Name (English)",
+  "@categoryFormNameEn": {},
+
+  "categoryFormNameAr": "Category Name (Arabic)",
+  "@categoryFormNameAr": {},
+
+  "categoryFormCoverUrl": "Cover Image URL",
+  "@categoryFormCoverUrl": {},
+
+  "categoryFormActive": "Active",
+  "@categoryFormActive": {},
+
+  "categoryFormActiveSubtitle": "Visible to customers",
+  "@categoryFormActiveSubtitle": {},
+
+  "categoryFormAllBranches": "All Branches",
+  "@categoryFormAllBranches": {},
+
+  "categoryFormSelectBranch": "Select at least one branch.",
+  "@categoryFormSelectBranch": {},
+
+  "categoryFormNoBranches": "No branches found.",
+  "@categoryFormNoBranches": {},
+
+  "categoryFormRequired": "Required",
+  "@categoryFormRequired": {},
+
+  "customersTitle": "Customers",
+  "@customersTitle": {},
+
+  "customersSearchHint": "Search by name, email, or phone…",
+  "@customersSearchHint": {},
+
+  "customersEmpty": "No customers yet",
+  "@customersEmpty": {},
+
+  "customersNoResults": "No results for \"{query}\"",
+  "@customersNoResults": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+
+  "customersFailedLoad": "Failed to load customers",
+  "@customersFailedLoad": {},
+
+  "customersRetry": "Retry",
+  "@customersRetry": {},
+
+  "customersColCustomer": "Customer",
+  "@customersColCustomer": {},
+
+  "customersColEmail": "Email",
+  "@customersColEmail": {},
+
+  "customersColPhone": "Phone",
+  "@customersColPhone": {},
+
+  "customersColOrders": "Orders",
+  "@customersColOrders": {},
+
+  "customersColLoyalty": "Loyalty",
+  "@customersColLoyalty": {},
+
+  "customersColTotalSpent": "Total Spent",
+  "@customersColTotalSpent": {},
+
+  "customerDetailCreateOrder": "Create Order",
+  "@customerDetailCreateOrder": {},
+
+  "customerDetailLoyaltyPoints": "Loyalty Points",
+  "@customerDetailLoyaltyPoints": {},
+
+  "customerDetailPoints": "points",
+  "@customerDetailPoints": {},
+
+  "customerDetailAdjust": "Adjust",
+  "@customerDetailAdjust": {},
+
+  "customerDetailAdjustTitle": "Adjust Loyalty Points",
+  "@customerDetailAdjustTitle": {},
+
+  "customerDetailAddPoints": "+ Add Points",
+  "@customerDetailAddPoints": {},
+
+  "customerDetailDeductPoints": "- Deduct Points",
+  "@customerDetailDeductPoints": {},
+
+  "customerDetailAmount": "Amount",
+  "@customerDetailAmount": {},
+
+  "customerDetailReason": "Reason / Description",
+  "@customerDetailReason": {},
+
+  "customerDetailConfirm": "Confirm",
+  "@customerDetailConfirm": {},
+
+  "customerDetailInternalNotes": "Internal Notes",
+  "@customerDetailInternalNotes": {},
+
+  "customerDetailNotesHint": "Add internal notes about this customer…",
+  "@customerDetailNotesHint": {},
+
+  "customerDetailSaveNotes": "Save Notes",
+  "@customerDetailSaveNotes": {},
+
+  "customerDetailNoNotes": "No notes yet",
+  "@customerDetailNoNotes": {},
+
+  "customerDetailBlocked": "Blocked",
+  "@customerDetailBlocked": {},
+
+  "customerDetailJoined": "Joined {date}",
+  "@customerDetailJoined": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
+  "customerDetailRef": "Ref: {code}",
+  "@customerDetailRef": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+
+  "customerDetailPastOrders": "Past Orders",
+  "@customerDetailPastOrders": {},
+
+  "customerDetailNoOrders": "No orders yet",
+  "@customerDetailNoOrders": {},
+
+  "branchesTitle": "Branches",
+  "@branchesTitle": {},
+
+  "branchesAddTooltip": "Add Branch",
+  "@branchesAddTooltip": {},
+
+  "branchesEmpty": "No branches yet",
+  "@branchesEmpty": {},
+
+  "branchesEmptyHint": "Tap + to add the first branch",
+  "@branchesEmptyHint": {},
+
+  "branchesFailedLoad": "Failed to load branches",
+  "@branchesFailedLoad": {},
+
+  "branchesRetry": "Retry",
+  "@branchesRetry": {},
+
+  "branchesMutationFailed": "Operation failed",
+  "@branchesMutationFailed": {},
+
+  "branchFormEditTitle": "Edit Branch",
+  "@branchFormEditTitle": {},
+
+  "branchFormNewTitle": "New Branch",
+  "@branchFormNewTitle": {},
+
+  "branchFormSave": "Save",
+  "@branchFormSave": {},
+
+  "branchFormBranchName": "Branch Name",
+  "@branchFormBranchName": {},
+
+  "branchFormLatitude": "Latitude",
+  "@branchFormLatitude": {},
+
+  "branchFormLongitude": "Longitude",
+  "@branchFormLongitude": {},
+
+  "branchFormRadius": "Coverage Radius (km)",
+  "@branchFormRadius": {},
+
+  "branchFormActive": "Active",
+  "@branchFormActive": {},
+
+  "branchFormDelete": "Delete Branch",
+  "@branchFormDelete": {},
+
+  "branchFormDeleteTitle": "Delete Branch?",
+  "@branchFormDeleteTitle": {},
+
+  "branchFormCancel": "Cancel",
+  "@branchFormCancel": {},
+
+  "branchFormDeleteConfirm": "Delete",
+  "@branchFormDeleteConfirm": {},
+
+  "branchFormNameRequired": "Name is required",
+  "@branchFormNameRequired": {},
+
+  "branchFormLatInvalid": "Enter a valid latitude",
+  "@branchFormLatInvalid": {},
+
+  "branchFormLatRange": "Latitude must be between -90 and 90",
+  "@branchFormLatRange": {},
+
+  "branchFormLonInvalid": "Enter a valid longitude",
+  "@branchFormLonInvalid": {},
+
+  "branchFormLonRange": "Longitude must be between -180 and 180",
+  "@branchFormLonRange": {},
+
+  "branchFormRadiusInvalid": "Enter a valid radius > 0",
+  "@branchFormRadiusInvalid": {},
+
+  "staffTitle": "Staff",
+  "@staffTitle": {},
+
+  "staffAddTooltip": "Add Staff",
+  "@staffAddTooltip": {},
+
+  "staffFilterAll": "All",
+  "@staffFilterAll": {},
+
+  "staffEmpty": "No staff members",
+  "@staffEmpty": {},
+
+  "staffEmptyHint": "Tap + to add the first member",
+  "@staffEmptyHint": {},
+
+  "staffFailedLoad": "Failed to load staff",
+  "@staffFailedLoad": {},
+
+  "staffRetry": "Retry",
+  "@staffRetry": {},
+
+  "staffMutationFailed": "Operation failed",
+  "@staffMutationFailed": {},
+
+  "staffRemoveTitle": "Remove Staff Member",
+  "@staffRemoveTitle": {},
+
+  "staffRemoveConfirm": "Remove {name} from staff?",
+  "@staffRemoveConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "staffCancel": "Cancel",
+  "@staffCancel": {},
+
+  "staffRemove": "Remove",
+  "@staffRemove": {},
+
+  "staffBranchScoped": "Branch scoped",
+  "@staffBranchScoped": {},
+
+  "staffFormEditTitle": "Edit Staff Member",
+  "@staffFormEditTitle": {},
+
+  "staffFormNewTitle": "Add Staff Member",
+  "@staffFormNewTitle": {},
+
+  "staffFormFullName": "Full Name",
+  "@staffFormFullName": {},
+
+  "staffFormPhoneOptional": "Phone (optional)",
+  "@staffFormPhoneOptional": {},
+
+  "staffFormPhone": "Phone Number",
+  "@staffFormPhone": {},
+
+  "staffFormTempPassword": "Temporary Password",
+  "@staffFormTempPassword": {},
+
+  "staffFormRole": "Role",
+  "@staffFormRole": {},
+
+  "staffFormBranches": "Branches",
+  "@staffFormBranches": {},
+
+  "staffFormActive": "Active",
+  "@staffFormActive": {},
+
+  "staffFormSaveChanges": "Save Changes",
+  "@staffFormSaveChanges": {},
+
+  "staffFormCreate": "Create Staff Account",
+  "@staffFormCreate": {},
+
+  "staffFormNameRequired": "Name is required",
+  "@staffFormNameRequired": {},
+
+  "staffFormPhoneRequired": "Phone number is required",
+  "@staffFormPhoneRequired": {},
+
+  "staffFormPasswordLength": "Password must be at least 6 characters",
+  "@staffFormPasswordLength": {},
+
+  "staffFormBranchRequired": "Select at least one branch",
+  "@staffFormBranchRequired": {},
+
+  "staffFormNoBranches": "No branches available",
+  "@staffFormNoBranches": {},
+
+  "zonesTitle": "Delivery Zones",
+  "@zonesTitle": {},
+
+  "zonesAddTooltip": "Add Zone",
+  "@zonesAddTooltip": {},
+
+  "zonesFailedLoad": "Failed to load zones",
+  "@zonesFailedLoad": {},
+
+  "zonesRetry": "Retry",
+  "@zonesRetry": {},
+
+  "zonesEmpty": "No delivery zones",
+  "@zonesEmpty": {},
+
+  "zonesEmptyHint": "Tap + to add the first zone",
+  "@zonesEmptyHint": {},
+
+  "zonesMutationFailed": "Operation failed",
+  "@zonesMutationFailed": {},
+
+  "zonesInactive": "Inactive",
+  "@zonesInactive": {},
+
+  "zoneFormEditTitle": "Edit Zone",
+  "@zoneFormEditTitle": {},
+
+  "zoneFormNewTitle": "New Zone",
+  "@zoneFormNewTitle": {},
+
+  "zoneFormSave": "Save",
+  "@zoneFormSave": {},
+
+  "zoneFormNameEn": "Zone Name (English)",
+  "@zoneFormNameEn": {},
+
+  "zoneFormNameAr": "Zone Name (Arabic) — optional",
+  "@zoneFormNameAr": {},
+
+  "zoneFormDeliveryFee": "Delivery Fee (EGP)",
+  "@zoneFormDeliveryFee": {},
+
+  "zoneFormMinOrder": "Minimum Order Value (EGP)",
+  "@zoneFormMinOrder": {},
+
+  "zoneFormMinItems": "Minimum Items (Rider Quantity)",
+  "@zoneFormMinItems": {},
+
+  "zoneFormMinOrderHint": "Set to 0 to disable minimum order requirement.",
+  "@zoneFormMinOrderHint": {},
+
+  "zoneFormMinItemsHint": "Minimum total number of items the customer must order. Set to 0 to disable.",
+  "@zoneFormMinItemsHint": {},
+
+  "zoneFormActive": "Active",
+  "@zoneFormActive": {},
+
+  "zoneFormDelete": "Delete Zone",
+  "@zoneFormDelete": {},
+
+  "zoneFormDeleteTitle": "Delete Zone?",
+  "@zoneFormDeleteTitle": {},
+
+  "zoneFormCancel": "Cancel",
+  "@zoneFormCancel": {},
+
+  "zoneFormDeleteConfirm": "Delete",
+  "@zoneFormDeleteConfirm": {},
+
+  "zoneFormNameRequired": "Name is required",
+  "@zoneFormNameRequired": {},
+
+  "zoneFormFeeInvalid": "Enter a valid fee (0 or more)",
+  "@zoneFormFeeInvalid": {},
+
+  "zoneFormMinInvalid": "Enter 0 or more",
+  "@zoneFormMinInvalid": {},
+
+  "deliveryTitle": "Delivery",
+  "@deliveryTitle": {},
+
+  "deliveryEmpty": "No active deliveries",
+  "@deliveryEmpty": {},
+
+  "deliveryAllSettled": "All orders are settled",
+  "@deliveryAllSettled": {},
+
+  "deliveryActive": "Active ({count})",
+  "@deliveryActive": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "deliveryRecentlyDelivered": "Recently Delivered",
+  "@deliveryRecentlyDelivered": {},
+
+  "deliveryPrepare": "Prepare",
+  "@deliveryPrepare": {},
+
+  "deliveryDispatch": "Dispatch",
+  "@deliveryDispatch": {},
+
+  "deliveryDelivered": "Delivered",
+  "@deliveryDelivered": {},
+
+  "dispatchTitle": "Dispatch Board",
+  "@dispatchTitle": {},
+
+  "dispatchReports": "Reports",
+  "@dispatchReports": {},
+
+  "dispatchToday": "Today",
+  "@dispatchToday": {},
+
+  "dispatchSearchHint": "Search orders…",
+  "@dispatchSearchHint": {},
+
+  "dispatchFailedLoad": "Failed to load orders",
+  "@dispatchFailedLoad": {},
+
+  "dispatchRetry": "Retry",
+  "@dispatchRetry": {},
+
+  "dispatchDropHere": "Drop here",
+  "@dispatchDropHere": {},
+
+  "dispatchNoOrders": "No orders",
+  "@dispatchNoOrders": {},
+
+  "dispatchCardPaid": "Paid",
+  "@dispatchCardPaid": {},
+
+  "dispatchCardUnpaid": "Unpaid",
+  "@dispatchCardUnpaid": {},
+
+  "dispatchCardCall": "Call",
+  "@dispatchCardCall": {},
+
+  "dispatchCardWhatsapp": "WhatsApp",
+  "@dispatchCardWhatsapp": {},
+
+  "dispatchCardMaps": "Maps",
+  "@dispatchCardMaps": {},
+
+  "dispatchCardMarkPaid": "Mark Paid",
+  "@dispatchCardMarkPaid": {},
+
+  "dispatchCardDetails": "Details",
+  "@dispatchCardDetails": {},
+
+  "dispatchCardHistory": "History",
+  "@dispatchCardHistory": {},
+
+  "dispatchCardNoHistory": "No history yet",
+  "@dispatchCardNoHistory": {},
+
+  "dispatchCardPayment": "Payment",
+  "@dispatchCardPayment": {},
+
+  "dispatchCardTotal": "Total",
+  "@dispatchCardTotal": {},
+
+  "dispatchCardDeliveryFee": "Delivery Fee",
+  "@dispatchCardDeliveryFee": {},
+
+  "dispatchCardCustomer": "Customer",
+  "@dispatchCardCustomer": {},
+
+  "dispatchCardAddress": "Address",
+  "@dispatchCardAddress": {},
+
+  "dispatchCardNotes": "Notes",
+  "@dispatchCardNotes": {},
+
+  "dispatchCardDriver": "Driver",
+  "@dispatchCardDriver": {},
+
+  "dispatchCardItems": "Items",
+  "@dispatchCardItems": {},
+
+  "dispatchCardPrintInvoice": "Print Invoice",
+  "@dispatchCardPrintInvoice": {},
+
+  "dispatchCardCopyInvoice": "Copy Invoice Text",
+  "@dispatchCardCopyInvoice": {},
+
+  "dispatchCardInvoiceCopied": "Invoice copied to clipboard",
+  "@dispatchCardInvoiceCopied": {},
+
+  "dispatchCardAssignDriver": "Assign Driver",
+  "@dispatchCardAssignDriver": {},
+
+  "dispatchCardChangeDriver": "Change Driver",
+  "@dispatchCardChangeDriver": {},
+
+  "dispatchCardUnassignDriver": "Unassign Driver",
+  "@dispatchCardUnassignDriver": {},
+
+  "dispatchCardNoDrivers": "No delivery staff found.",
+  "@dispatchCardNoDrivers": {},
+
+  "dispatchCardDeposit": "Deposit amount",
+  "@dispatchCardDeposit": {},
+
+  "dispatchCardDepositLabel": "Deposit",
+  "@dispatchCardDepositLabel": {},
+
+  "dispatchCardDepositEdit": "Edit",
+  "@dispatchCardDepositEdit": {},
+
+  "dispatchCardSetDeposit": "Set Deposit",
+  "@dispatchCardSetDeposit": {},
+
+  "dispatchCardSave": "Save",
+  "@dispatchCardSave": {},
+
+  "dispatchCardCancel": "Cancel",
+  "@dispatchCardCancel": {},
+
+  "dailyReportTitle": "Daily Report",
+  "@dailyReportTitle": {},
+
+  "dailyReportSingleDay": "Single Day",
+  "@dailyReportSingleDay": {},
+
+  "dailyReportDateRange": "Date Range",
+  "@dailyReportDateRange": {},
+
+  "dailyReportToday": "Today",
+  "@dailyReportToday": {},
+
+  "dailyReportChange": "Change",
+  "@dailyReportChange": {},
+
+  "dailyReportNoAssigned": "No assigned orders",
+  "@dailyReportNoAssigned": {},
+
+  "dailyReportUnassigned": "Unassigned Orders ({count})",
+  "@dailyReportUnassigned": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "dailyReportAdd": "Add",
+  "@dailyReportAdd": {},
+
+  "dailyReportAddExpense": "Add Expense",
+  "@dailyReportAddExpense": {},
+
+  "dailyReportEditExpense": "Edit Expense",
+  "@dailyReportEditExpense": {},
+
+  "dailyReportCancel": "Cancel",
+  "@dailyReportCancel": {},
+
+  "dailyReportSave": "Save",
+  "@dailyReportSave": {},
+
+  "dailyReportDeleteExpense": "Delete Expense",
+  "@dailyReportDeleteExpense": {},
+
+  "driverReportTitle": "Driver Report",
+  "@driverReportTitle": {},
+
+  "driverReportFilterRange": "Range",
+  "@driverReportFilterRange": {},
+
+  "driverReportFilterAll": "All",
+  "@driverReportFilterAll": {},
+
+  "driverReportFilterByDate": "By Date",
+  "@driverReportFilterByDate": {},
+
+  "driverReportAllDates": "All Dates",
+  "@driverReportAllDates": {},
+
+  "driverReportClear": "Clear",
+  "@driverReportClear": {},
+
+  "driverReportDrivers": "Drivers",
+  "@driverReportDrivers": {},
+
+  "driverReportNoDrivers": "No drivers",
+  "@driverReportNoDrivers": {},
+
+  "driverReportCollected": "Collected",
+  "@driverReportCollected": {},
+
+  "driverReportCustomShipping": "Custom shipping fee",
+  "@driverReportCustomShipping": {},
+
+  "driverReportTotalOrders": "Total Orders",
+  "@driverReportTotalOrders": {},
+
+  "driverReportCashOrders": "Cash Orders",
+  "@driverReportCashOrders": {},
+
+  "driverReportInstapay": "Instapay",
+  "@driverReportInstapay": {},
+
+  "reportsTabSummary": "Summary",
+  "@reportsTabSummary": {},
+
+  "reportsTabDrivers": "Drivers",
+  "@reportsTabDrivers": {},
+
+  "reportsTabExpenses": "Expenses",
+  "@reportsTabExpenses": {},
+
+  "reportsRetry": "Retry",
+  "@reportsRetry": {},
+
+  "reportsNoDrivers": "No drivers found",
+  "@reportsNoDrivers": {},
+
+  "reportsSelectDriver": "Select a driver",
+  "@reportsSelectDriver": {},
+
+  "reportsToday": "Today",
+  "@reportsToday": {},
+
+  "reportsAdd": "Add",
+  "@reportsAdd": {},
+
+  "reportsNoExpenses": "No expenses in this period",
+  "@reportsNoExpenses": {},
+
+  "reportsChangeRange": "Change range",
+  "@reportsChangeRange": {},
+
+  "reportsTotal": "Total",
+  "@reportsTotal": {},
+
+  "reportsTypes": "Types",
+  "@reportsTypes": {},
+
+  "reportsDays": "Days",
+  "@reportsDays": {},
+
+  "reportsSetDeposit": "Set deposit",
+  "@reportsSetDeposit": {},
+
+  "reportsAmount": "Amount",
+  "@reportsAmount": {},
+
+  "reportsSave": "Save",
+  "@reportsSave": {},
+
+  "reportsCancel": "Cancel",
+  "@reportsCancel": {},
+
+  "reportsDeleteExpense": "Delete Expense",
+  "@reportsDeleteExpense": {},
+
+  "reportsModeSingleDay": "Single Day",
+  "@reportsModeSingleDay": {},
+
+  "reportsModeDateRange": "Date Range",
+  "@reportsModeDateRange": {},
+
+  "reportsIncomeTitle": "Income",
+  "@reportsIncomeTitle": {},
+
+  "reportsTotalSales": "Total Sales",
+  "@reportsTotalSales": {},
+
+  "reportsDeliveryFees": "Delivery Fees",
+  "@reportsDeliveryFees": {},
+
+  "reportsDeliveryCost": "Actual Delivery Cost",
+  "@reportsDeliveryCost": {},
+
+  "reportsNetSales": "Net Sales",
+  "@reportsNetSales": {},
+
+  "reportsTotalCogs": "Total COGS",
+  "@reportsTotalCogs": {},
+
+  "reportsGrossProfit": "Gross Profit",
+  "@reportsGrossProfit": {},
+
+  "reportsLoss": "Loss",
+  "@reportsLoss": {},
+
+  "reportsCashFlowTitle": "Cash Flow",
+  "@reportsCashFlowTitle": {},
+
+  "reportsCashSales": "Cash Sales",
+  "@reportsCashSales": {},
+
+  "reportsInstapay": "Instapay",
+  "@reportsInstapay": {},
+
+  "reportsDepositsPaid": "Deposits Paid",
+  "@reportsDepositsPaid": {},
+
+  "reportsDriversOwe": "Drivers Owe",
+  "@reportsDriversOwe": {},
+
+  "reportsTotalExpenses": "Total Expenses",
+  "@reportsTotalExpenses": {},
+
+  "reportsNetCash": "Net Cash",
+  "@reportsNetCash": {},
+
+  "reportsDeficit": "Deficit",
+  "@reportsDeficit": {},
+
+  "reportsDriverAccountsTitle": "Driver Accounts",
+  "@reportsDriverAccountsTitle": {},
+
+  "reportsNoAssignedOrders": "No assigned orders",
+  "@reportsNoAssignedOrders": {},
+
+  "reportsZoneAccountsTitle": "Zone Accounts",
+  "@reportsZoneAccountsTitle": {},
+
+  "reportsNoZoneData": "No zone data",
+  "@reportsNoZoneData": {},
+
+  "reportsAllOrdersTitle": "All Orders",
+  "@reportsAllOrdersTitle": {},
+
+  "reportsNoOrders": "No orders",
+  "@reportsNoOrders": {},
+
+  "reportsCustomerFee": "Customer Fee",
+  "@reportsCustomerFee": {},
+
+  "reportsZoneLabel": "Zone",
+  "@reportsZoneLabel": {},
+
+  "reportsOrdersLabel": "Orders",
+  "@reportsOrdersLabel": {},
+
+  "reportsCustFeeLabel": "Cust. Fee",
+  "@reportsCustFeeLabel": {},
+
+  "reportsActualCostLabel": "Actual Cost",
+  "@reportsActualCostLabel": {},
+
+  "reportsEditLabel": "Edit",
+  "@reportsEditLabel": {},
+
+  "reportsSetCost": "Set cost",
+  "@reportsSetCost": {},
+
+  "reportsTotalOrders": "Total Orders",
+  "@reportsTotalOrders": {},
+
+  "reportsCashLabel": "Cash",
+  "@reportsCashLabel": {},
+
+  "reportsInstapayLabel": "Instapay",
+  "@reportsInstapayLabel": {},
+
+  "reportsDepositsLabel": "Deposits",
+  "@reportsDepositsLabel": {},
+
+  "reportsDriverOwesLabel": "Driver Owes",
+  "@reportsDriverOwesLabel": {},
+
+  "reportsOwed": "Owed",
+  "@reportsOwed": {},
+
+  "reportsOrdersTitle": "Orders",
+  "@reportsOrdersTitle": {},
+
+  "reportsDue": "Due",
+  "@reportsDue": {},
+
+  "reportsAddExpense": "Add Expense",
+  "@reportsAddExpense": {},
+
+  "reportsEditExpense": "Edit Expense",
+  "@reportsEditExpense": {},
+
+  "reportsTypeLabel": "Type",
+  "@reportsTypeLabel": {},
+
+  "reportsTotalHeader": "Total",
+  "@reportsTotalHeader": {},
+
+  "reportsDeleteConfirm": "Delete expense",
+  "@reportsDeleteConfirm": {},
+
+  "reportsDelete": "Delete",
+  "@reportsDelete": {},
+
+  "reportsShippingLabel": "Shipping",
+  "@reportsShippingLabel": {},
+
+  "bannersTitle": "Banners",
+  "@bannersTitle": {},
+
+  "bannersRetry": "Retry",
+  "@bannersRetry": {},
+
+  "bannersFailedLoad": "Failed to load",
+  "@bannersFailedLoad": {},
+
+  "bannersEmpty": "No banners yet",
+  "@bannersEmpty": {},
+
+  "bannersEmptyHint": "Tap + to add the first banner",
+  "@bannersEmptyHint": {},
+
+  "bannersDeleteTitle": "Delete Banner",
+  "@bannersDeleteTitle": {},
+
+  "bannersCancel": "Cancel",
+  "@bannersCancel": {},
+
+  "bannersDelete": "Delete",
+  "@bannersDelete": {},
+
+  "bannersMutationFailed": "Operation failed",
+  "@bannersMutationFailed": {},
+
+  "bannerFormEditTitle": "Edit Banner",
+  "@bannerFormEditTitle": {},
+
+  "bannerFormNewTitle": "New Banner",
+  "@bannerFormNewTitle": {},
+
+  "bannerFormImageUrl": "Image URL",
+  "@bannerFormImageUrl": {},
+
+  "bannerFormImageRequired": "Image URL is required",
+  "@bannerFormImageRequired": {},
+
+  "bannerFormTitleField": "Title (optional)",
+  "@bannerFormTitleField": {},
+
+  "bannerFormSortOrder": "Sort Order",
+  "@bannerFormSortOrder": {},
+
+  "bannerFormActive": "Active",
+  "@bannerFormActive": {},
+
+  "bannerFormOnTapAction": "On Tap Action",
+  "@bannerFormOnTapAction": {},
+
+  "bannerFormUrlToOpen": "URL to Open",
+  "@bannerFormUrlToOpen": {},
+
+  "bannerFormUrlRequired": "URL is required",
+  "@bannerFormUrlRequired": {},
+
+  "bannerFormSelectProduct": "Select Product",
+  "@bannerFormSelectProduct": {},
+
+  "bannerFormSelectCategory": "Select Category",
+  "@bannerFormSelectCategory": {},
+
+  "bannerFormTapProduct": "Tap to choose a product",
+  "@bannerFormTapProduct": {},
+
+  "bannerFormTapCategory": "Tap to choose a category",
+  "@bannerFormTapCategory": {},
+
+  "bannerFormStartDate": "Start Date (optional)",
+  "@bannerFormStartDate": {},
+
+  "bannerFormEndDate": "End Date (optional)",
+  "@bannerFormEndDate": {},
+
+  "bannerFormSaveChanges": "Save Changes",
+  "@bannerFormSaveChanges": {},
+
+  "bannerFormCreate": "Create Banner",
+  "@bannerFormCreate": {},
+
+  "bannerFormInvalidImage": "Invalid image URL",
+  "@bannerFormInvalidImage": {},
+
+  "popupAdsTitle": "Popup Ads",
+  "@popupAdsTitle": {},
+
+  "popupAdsEmpty": "No popup ads yet",
+  "@popupAdsEmpty": {},
+
+  "popupAdsCreate": "Create Popup Ad",
+  "@popupAdsCreate": {},
+
+  "popupAdsEnds": "Ends {date}",
+  "@popupAdsEnds": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
+  "popupAdsEdit": "Edit",
+  "@popupAdsEdit": {},
+
+  "popupAdsDelete": "Delete",
+  "@popupAdsDelete": {},
+
+  "popupAdsDeleteTitle": "Delete Popup Ad?",
+  "@popupAdsDeleteTitle": {},
+
+  "popupAdsCancel": "Cancel",
+  "@popupAdsCancel": {},
+
+  "popupAdFormEditTitle": "Edit Popup Ad",
+  "@popupAdFormEditTitle": {},
+
+  "popupAdFormNewTitle": "New Popup Ad",
+  "@popupAdFormNewTitle": {},
+
+  "popupAdFormSave": "Save",
+  "@popupAdFormSave": {},
+
+  "popupAdFormBasicInfo": "Basic Info",
+  "@popupAdFormBasicInfo": {},
+
+  "popupAdFormImage": "Image",
+  "@popupAdFormImage": {},
+
+  "popupAdFormButton": "Button (optional)",
+  "@popupAdFormButton": {},
+
+  "popupAdFormSchedule": "Schedule (optional)",
+  "@popupAdFormSchedule": {},
+
+  "popupAdFormTitleField": "Title *",
+  "@popupAdFormTitleField": {},
+
+  "popupAdFormTitleRequired": "Title required",
+  "@popupAdFormTitleRequired": {},
+
+  "popupAdFormBody": "Body text (optional)",
+  "@popupAdFormBody": {},
+
+  "popupAdFormImageUrl": "Image URL",
+  "@popupAdFormImageUrl": {},
+
+  "popupAdFormUpload": "Upload",
+  "@popupAdFormUpload": {},
+
+  "popupAdFormButtonLabel": "Button label",
+  "@popupAdFormButtonLabel": {},
+
+  "popupAdFormButtonUrl": "Button URL",
+  "@popupAdFormButtonUrl": {},
+
+  "popupAdFormStartDate": "Start date",
+  "@popupAdFormStartDate": {},
+
+  "popupAdFormEndDate": "End date",
+  "@popupAdFormEndDate": {},
+
+  "popupAdFormActive": "Active",
+  "@popupAdFormActive": {},
+
+  "popupAdFormUploadFailed": "Upload failed: {error}",
+  "@popupAdFormUploadFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "popupAdFormFrequency": "Show frequency",
+  "@popupAdFormFrequency": {},
+
+  "popupAdFreqEverySession": "Every session",
+  "@popupAdFreqEverySession": {},
+
+  "popupAdFreqOncePerDay": "Once per day",
+  "@popupAdFreqOncePerDay": {},
+
+  "popupAdFreqOnceEver": "Once ever",
+  "@popupAdFreqOnceEver": {},
+
+  "popupAdFormCountdown": "Countdown Timer (optional)",
+  "@popupAdFormCountdown": {},
+
+  "popupAdFormCountdownAt": "Countdown ends at",
+  "@popupAdFormCountdownAt": {},
+
+  "promoCodesTitle": "Promo Codes",
+  "@promoCodesTitle": {},
+
+  "promoCodesRetry": "Retry",
+  "@promoCodesRetry": {},
+
+  "promoCodesFailedLoad": "Failed to load",
+  "@promoCodesFailedLoad": {},
+
+  "promoCodesEmpty": "No promo codes",
+  "@promoCodesEmpty": {},
+
+  "promoCodesEmptyHint": "Tap + to create one",
+  "@promoCodesEmptyHint": {},
+
+  "promoCodesFilterAll": "All",
+  "@promoCodesFilterAll": {},
+
+  "promoCodesFilterActive": "Active",
+  "@promoCodesFilterActive": {},
+
+  "promoCodesFilterExpired": "Expired",
+  "@promoCodesFilterExpired": {},
+
+  "promoCodesFilterInactive": "Inactive",
+  "@promoCodesFilterInactive": {},
+
+  "promoCodesDeleteTitle": "Delete Promo Code",
+  "@promoCodesDeleteTitle": {},
+
+  "promoCodesCancel": "Cancel",
+  "@promoCodesCancel": {},
+
+  "promoCodesDelete": "Delete",
+  "@promoCodesDelete": {},
+
+  "promoCodes_mutationFailed": "Operation failed",
+  "@promoCodes_mutationFailed": {},
+
+  "promoCodesCopied": "Copied {code}",
+  "@promoCodesCopied": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+
+  "promoCodeFormEditTitle": "Edit Promo Code",
+  "@promoCodeFormEditTitle": {},
+
+  "promoCodeFormNewTitle": "New Promo Code",
+  "@promoCodeFormNewTitle": {},
+
+  "promoCodeFormCodeField": "Promo Code",
+  "@promoCodeFormCodeField": {},
+
+  "promoCodeFormCodeRequired": "Code is required",
+  "@promoCodeFormCodeRequired": {},
+
+  "promoCodeFormDiscountType": "Discount Type",
+  "@promoCodeFormDiscountType": {},
+
+  "promoCodeFormDiscountPct": "Discount Percentage",
+  "@promoCodeFormDiscountPct": {},
+
+  "promoCodeFormDiscountAmount": "Discount Amount (EGP)",
+  "@promoCodeFormDiscountAmount": {},
+
+  "promoCodeFormInvalidValue": "Enter a valid value",
+  "@promoCodeFormInvalidValue": {},
+
+  "promoCodeFormPctMax": "Percentage cannot exceed 100%",
+  "@promoCodeFormPctMax": {},
+
+  "promoCodeFormDescription": "Description (optional)",
+  "@promoCodeFormDescription": {},
+
+  "promoCodeFormMinOrder": "Minimum Order Value (EGP)",
+  "@promoCodeFormMinOrder": {},
+
+  "promoCodeFormMaxUses": "Max Total Uses",
+  "@promoCodeFormMaxUses": {},
+
+  "promoCodeFormPerUser": "Per User Limit",
+  "@promoCodeFormPerUser": {},
+
+  "promoCodeFormMin1": "Min 1",
+  "@promoCodeFormMin1": {},
+
+  "promoCodeFormStartDate": "Start Date (optional)",
+  "@promoCodeFormStartDate": {},
+
+  "promoCodeFormExpiryDate": "Expiry Date (optional)",
+  "@promoCodeFormExpiryDate": {},
+
+  "promoCodeFormActive": "Active",
+  "@promoCodeFormActive": {},
+
+  "promoCodeFormSaveChanges": "Save Changes",
+  "@promoCodeFormSaveChanges": {},
+
+  "promoCodeFormCreate": "Create Promo Code",
+  "@promoCodeFormCreate": {},
+
+  "promoCodeFormGenerate": "Generate random code",
+  "@promoCodeFormGenerate": {},
+
+  "loyaltyTitle": "Loyalty Management",
+  "@loyaltyTitle": {},
+
+  "loyaltyTabRules": "Rules",
+  "@loyaltyTabRules": {},
+
+  "loyaltyTabSpend": "Spend Milestones",
+  "@loyaltyTabSpend": {},
+
+  "loyaltyTabPoints": "Points Rewards",
+  "@loyaltyTabPoints": {},
+
+  "loyaltyTabTransactions": "Transactions",
+  "@loyaltyTabTransactions": {},
+
+  "loyaltyFilterCustomer": "Filter by customer ID…",
+  "@loyaltyFilterCustomer": {},
+
+  "loyaltyNoTransactions": "No transactions",
+  "@loyaltyNoTransactions": {},
+
+  "loyaltyTransactionsHint": "Loyalty transactions will appear here",
+  "@loyaltyTransactionsHint": {},
+
+  "loyaltyTypeCashback": "Cashback Event",
+  "@loyaltyTypeCashback": {},
+
+  "loyaltyTypeBaseEarn": "Base Earn",
+  "@loyaltyTypeBaseEarn": {},
+
+  "loyaltyTypeFreeProduct": "Free Product",
+  "@loyaltyTypeFreeProduct": {},
+
+  "loyaltyTypeFreeDelivery": "Free Delivery",
+  "@loyaltyTypeFreeDelivery": {},
+
+  "loyaltyGoalFormEditTitle": "Edit Points Reward",
+  "@loyaltyGoalFormEditTitle": {},
+
+  "loyaltyGoalFormNewTitle": "New Points Reward",
+  "@loyaltyGoalFormNewTitle": {},
+
+  "loyaltyGoalFormSave": "Save",
+  "@loyaltyGoalFormSave": {},
+
+  "loyaltyGoalFormIcon": "Icon (emoji)",
+  "@loyaltyGoalFormIcon": {},
+
+  "loyaltyGoalFormTitle": "Title",
+  "@loyaltyGoalFormTitle": {},
+
+  "loyaltyGoalFormTitleRequired": "Title is required",
+  "@loyaltyGoalFormTitleRequired": {},
+
+  "loyaltyGoalFormPointsRequired": "Points Required",
+  "@loyaltyGoalFormPointsRequired": {},
+
+  "loyaltyGoalFormPointsInvalid": "Enter points greater than 0",
+  "@loyaltyGoalFormPointsInvalid": {},
+
+  "loyaltyGoalFormRewardType": "Reward Type",
+  "@loyaltyGoalFormRewardType": {},
+
+  "loyaltyGoalFormFreeDelivery": "Free Delivery",
+  "@loyaltyGoalFormFreeDelivery": {},
+
+  "loyaltyGoalFormFreeProduct": "Free Product",
+  "@loyaltyGoalFormFreeProduct": {},
+
+  "loyaltyGoalFormSelectProduct": "Select Free Product",
+  "@loyaltyGoalFormSelectProduct": {},
+
+  "loyaltyGoalFormTapProduct": "Tap to choose a product",
+  "@loyaltyGoalFormTapProduct": {},
+
+  "loyaltyGoalFormDescription": "Description — optional",
+  "@loyaltyGoalFormDescription": {},
+
+  "loyaltyGoalFormSortOrder": "Sort Order",
+  "@loyaltyGoalFormSortOrder": {},
+
+  "loyaltyGoalFormSortInvalid": "Enter 0 or more",
+  "@loyaltyGoalFormSortInvalid": {},
+
+  "loyaltyGoalFormActive": "Active",
+  "@loyaltyGoalFormActive": {},
+
+  "loyaltyGoalFormDelete": "Delete Reward",
+  "@loyaltyGoalFormDelete": {},
+
+  "loyaltyGoalFormDeleteTitle": "Delete Reward?",
+  "@loyaltyGoalFormDeleteTitle": {},
+
+  "loyaltyGoalFormCancel": "Cancel",
+  "@loyaltyGoalFormCancel": {},
+
+  "loyaltyGoalFormDeleteConfirm": "Delete",
+  "@loyaltyGoalFormDeleteConfirm": {},
+
+  "loyaltyRuleFormEditTitle": "Edit Rule",
+  "@loyaltyRuleFormEditTitle": {},
+
+  "loyaltyRuleFormNewTitle": "New Rule",
+  "@loyaltyRuleFormNewTitle": {},
+
+  "loyaltyRuleFormSave": "Save",
+  "@loyaltyRuleFormSave": {},
+
+  "loyaltyRuleFormName": "Rule Name",
+  "@loyaltyRuleFormName": {},
+
+  "loyaltyRuleFormNameRequired": "Name is required",
+  "@loyaltyRuleFormNameRequired": {},
+
+  "loyaltyRuleFormType": "Rule Type",
+  "@loyaltyRuleFormType": {},
+
+  "loyaltyRuleFormBaseEarn": "Base Earn",
+  "@loyaltyRuleFormBaseEarn": {},
+
+  "loyaltyRuleFormCashback": "Cashback Event",
+  "@loyaltyRuleFormCashback": {},
+
+  "loyaltyRuleFormPointsPerEgp": "Points per EGP Spent",
+  "@loyaltyRuleFormPointsPerEgp": {},
+
+  "loyaltyRuleFormPointsInvalid": "Enter a value greater than 0",
+  "@loyaltyRuleFormPointsInvalid": {},
+
+  "loyaltyRuleFormMinOrder": "Minimum Order Value (EGP) — optional",
+  "@loyaltyRuleFormMinOrder": {},
+
+  "loyaltyRuleFormValidFrom": "Valid From — optional",
+  "@loyaltyRuleFormValidFrom": {},
+
+  "loyaltyRuleFormValidUntil": "Valid Until — optional",
+  "@loyaltyRuleFormValidUntil": {},
+
+  "loyaltyRuleFormDailyStart": "Daily Start Time — optional",
+  "@loyaltyRuleFormDailyStart": {},
+
+  "loyaltyRuleFormDailyEnd": "Daily End Time — optional",
+  "@loyaltyRuleFormDailyEnd": {},
+
+  "loyaltyRuleFormSelectDate": "Select date",
+  "@loyaltyRuleFormSelectDate": {},
+
+  "loyaltyRuleFormSelectTime": "Select time",
+  "@loyaltyRuleFormSelectTime": {},
+
+  "loyaltyRuleFormActive": "Active",
+  "@loyaltyRuleFormActive": {},
+
+  "loyaltyRuleFormDelete": "Delete Rule",
+  "@loyaltyRuleFormDelete": {},
+
+  "loyaltyRuleFormDeleteTitle": "Delete Rule?",
+  "@loyaltyRuleFormDeleteTitle": {},
+
+  "loyaltyRuleFormCancel": "Cancel",
+  "@loyaltyRuleFormCancel": {},
+
+  "loyaltyRuleFormDeleteConfirm": "Delete",
+  "@loyaltyRuleFormDeleteConfirm": {},
+
+  "spendGoalFormEditTitle": "Edit Spend Milestone",
+  "@spendGoalFormEditTitle": {},
+
+  "spendGoalFormNewTitle": "New Spend Milestone",
+  "@spendGoalFormNewTitle": {},
+
+  "spendGoalFormSave": "Save",
+  "@spendGoalFormSave": {},
+
+  "spendGoalFormIcon": "Icon (emoji)",
+  "@spendGoalFormIcon": {},
+
+  "spendGoalFormTitle": "Title",
+  "@spendGoalFormTitle": {},
+
+  "spendGoalFormTitleRequired": "Title is required",
+  "@spendGoalFormTitleRequired": {},
+
+  "spendGoalFormSpendRequired": "Spend Required (EGP)",
+  "@spendGoalFormSpendRequired": {},
+
+  "spendGoalFormSpendInvalid": "Enter a spend amount greater than 0",
+  "@spendGoalFormSpendInvalid": {},
+
+  "spendGoalFormRewardType": "Reward Type",
+  "@spendGoalFormRewardType": {},
+
+  "spendGoalFormFreeDelivery": "Free Delivery",
+  "@spendGoalFormFreeDelivery": {},
+
+  "spendGoalFormFreeProduct": "Free Product",
+  "@spendGoalFormFreeProduct": {},
+
+  "spendGoalFormDiscount": "Discount (%)",
+  "@spendGoalFormDiscount": {},
+
+  "spendGoalFormDiscountInvalid": "Enter a discount between 1 and 100",
+  "@spendGoalFormDiscountInvalid": {},
+
+  "spendGoalFormDescription": "Description — optional",
+  "@spendGoalFormDescription": {},
+
+  "spendGoalFormSortOrder": "Sort Order",
+  "@spendGoalFormSortOrder": {},
+
+  "spendGoalFormActive": "Active",
+  "@spendGoalFormActive": {},
+
+  "spendGoalFormDelete": "Delete Milestone",
+  "@spendGoalFormDelete": {},
+
+  "spendGoalFormDeleteTitle": "Delete Milestone?",
+  "@spendGoalFormDeleteTitle": {},
+
+  "spendGoalFormCancel": "Cancel",
+  "@spendGoalFormCancel": {},
+
+  "spendGoalFormDeleteConfirm": "Delete",
+  "@spendGoalFormDeleteConfirm": {},
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {},
+
+  "settingsServiceFee": "Service Fee",
+  "@settingsServiceFee": {},
+
+  "settingsShowInCheckout": "Show in checkout",
+  "@settingsShowInCheckout": {},
+
+  "settingsShowInCheckoutSubtitle": "Appears as a line item on the order summary",
+  "@settingsShowInCheckoutSubtitle": {},
+
+  "settingsFeeAmount": "Fee Amount (EGP)",
+  "@settingsFeeAmount": {},
+
+  "settingsMaxPoints": "Max Points Per Order (0 = unlimited)",
+  "@settingsMaxPoints": {},
+
+  "settingsOnlineWindow": "Online User Window (minutes)",
+  "@settingsOnlineWindow": {},
+
+  "settingsOnlineWindowDesc": "A user is counted as \"online\" if active within this window",
+  "@settingsOnlineWindowDesc": {},
+
+  "settingsReferralBonusReferrer": "Referral Bonus — Referrer (pts)",
+  "@settingsReferralBonusReferrer": {},
+
+  "settingsReferralRewardNew": "Referral Reward — New User (pts)",
+  "@settingsReferralRewardNew": {},
+
+  "settingsSaveChanges": "Save Changes",
+  "@settingsSaveChanges": {},
+
+  "settingsSaveFailed": "Failed to save",
+  "@settingsSaveFailed": {},
+
+  "settingsSignOut": "Sign Out",
+  "@settingsSignOut": {},
+
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {},
+
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {},
+
+  "settingsLanguageArabic": "Arabic",
+  "@settingsLanguageArabic": {},
+
+  "csvTitle": "Import / Export",
+  "@csvTitle": {},
+
+  "csvTabProducts": "Products",
+  "@csvTabProducts": {},
+
+  "csvTabCustomers": "Customers",
+  "@csvTabCustomers": {},
+
+  "csvTabOrders": "Orders",
+  "@csvTabOrders": {},
+
+  "csvExportProducts": "Export Products",
+  "@csvExportProducts": {},
+
+  "csvImportProducts": "Import Products",
+  "@csvImportProducts": {},
+
+  "csvExportCustomers": "Export Customers",
+  "@csvExportCustomers": {},
+
+  "csvImportCustomers": "Import Customers",
+  "@csvImportCustomers": {},
+
+  "csvExportOrders": "Export Orders",
+  "@csvExportOrders": {},
+
+  "csvExportCsv": "Export CSV",
+  "@csvExportCsv": {},
+
+  "csvPickFile": "Pick CSV File",
+  "@csvPickFile": {},
+
+  "csvProcessing": "Processing…",
+  "@csvProcessing": {},
+
+  "csvOrderImportWarning": "Order import is not supported",
+  "@csvOrderImportWarning": {},
+
+  "csvProductImportPreview": "Product Import Preview",
+  "@csvProductImportPreview": {},
+
+  "csvCustomerImportPreview": "Customer Import Preview",
+  "@csvCustomerImportPreview": {},
+
+  "csvRows": "{count} rows",
+  "@csvRows": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "csvAndMore": "… and {count} more",
+  "@csvAndMore": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "csvCancel": "Cancel",
+  "@csvCancel": {},
+
+  "csvImportRows": "Import {count} rows",
+  "@csvImportRows": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "csvExpectedColumns": "Expected CSV columns",
+  "@csvExpectedColumns": {},
+
+  "stubComingSoon": "Coming soon",
+  "@stubComingSoon": {}
+}

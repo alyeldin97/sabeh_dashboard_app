@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../orders_data_source.dart';
@@ -204,7 +205,10 @@ class SupabaseOrdersDataSource implements OrdersDataSource {
     try {
       await _client
           .from('orders')
-          .update({'status': status.value})
+          .update({
+            'status': status.value,
+            'status_changed_at': DateTime.now().toUtc().toIso8601String(),
+          })
           .eq('id', orderId);
       AppLogger.i(_tag, 'updateOrderStatus success');
     } catch (e, st) {
@@ -218,7 +222,7 @@ class SupabaseOrdersDataSource implements OrdersDataSource {
     AppLogger.net(_tag, 'markOrderPaid', 'orderId=$orderId isPaid=$isPaid isCashOrder=$isCashOrder');
     try {
       final payload = <String, dynamic>{'is_paid': isPaid};
-      if (isCashOrder) {
+      if (isCashOrder || !isPaid) {
         payload['payment_method'] = isPaid ? 'instapay' : 'cash';
       }
       await _client.from('orders').update(payload).eq('id', orderId);
@@ -237,6 +241,7 @@ class SupabaseOrdersDataSource implements OrdersDataSource {
     String? paymentMethod,
     String? customerPhone,
     String? staffNote,
+    String? orderType,
   }) async {
     AppLogger.net(_tag, 'updateOrderFields', 'orderId=$orderId');
     try {
@@ -246,6 +251,7 @@ class SupabaseOrdersDataSource implements OrdersDataSource {
       if (paymentMethod != null)   payload['payment_method'] = paymentMethod;
       if (customerPhone != null)   payload['customer_phone'] = customerPhone.isEmpty ? null : customerPhone;
       if (staffNote != null)       payload['staff_note'] = staffNote.isEmpty ? null : staffNote;
+      if (orderType != null)       payload['order_type'] = orderType;
       if (payload.isEmpty) return;
       await _client.from('orders').update(payload).eq('id', orderId);
       AppLogger.i(_tag, 'updateOrderFields success');
@@ -436,5 +442,49 @@ class SupabaseOrdersDataSource implements OrdersDataSource {
     }
     await _ordersController?.close();
     _ordersController = null;
+  }
+
+  @override
+  Future<String> uploadTransactionInvoiceImage({
+    required String orderId,
+    required Uint8List bytes,
+    required String extension,
+  }) async {
+    AppLogger.net(_tag, 'uploadTransactionInvoiceImage', 'orderId=$orderId ext=$extension');
+    try {
+      final path = 'invoices/$orderId.$extension';
+      await _client.storage.from('order-invoices').uploadBinary(
+        path,
+        bytes,
+        fileOptions: FileOptions(
+          contentType: 'image/$extension',
+          upsert: true,
+        ),
+      );
+      final url = _client.storage.from('order-invoices').getPublicUrl(path);
+      AppLogger.i(_tag, 'uploadTransactionInvoiceImage → $url');
+      return url;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'uploadTransactionInvoiceImage failed', e, st);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateTransactionInvoice({
+    required String orderId,
+    String? imageUrl,
+  }) async {
+    AppLogger.net(_tag, 'updateTransactionInvoice', 'orderId=$orderId');
+    try {
+      await _client
+          .from('orders')
+          .update({'transaction_invoice_image': imageUrl})
+          .eq('id', orderId);
+      AppLogger.i(_tag, 'updateTransactionInvoice success');
+    } catch (e, st) {
+      AppLogger.e(_tag, 'updateTransactionInvoice failed', e, st);
+      rethrow;
+    }
   }
 }

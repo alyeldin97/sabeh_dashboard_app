@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../orders/data/model/order_model.dart';
 import '../../../orders/data/repo/orders_repository.dart';
@@ -49,6 +50,9 @@ class DispatchBoardCubit extends Cubit<DispatchBoardState> {
 
   void setSearch(String query) => emit(state.copyWith(searchQuery: query));
 
+  void toggleLateFilter() =>
+      emit(state.copyWith(showLateOnly: !state.showLateOnly));
+
   void setDriverFilter(String? driverId) {
     if (driverId == null) {
       emit(state.copyWith(clearDriverFilter: true));
@@ -65,10 +69,29 @@ class DispatchBoardCubit extends Cubit<DispatchBoardState> {
     String? actorName,
     String? actorRole,
   }) async {
-    final oldStatus = _findOrder(orderId)?.status;
+    final order = _findOrder(orderId);
+    final oldStatus = order?.status;
+
+    // Role check: only admin/manager/delivery_manager or the assigned driver
+    // can move an order from out_for_delivery to delivered/rejected
+    if (oldStatus == OrderStatus.outForDelivery &&
+        (newStatus == OrderStatus.delivered || newStatus == OrderStatus.rejected)) {
+      final allowedRoles = {'admin', 'manager', 'delivery_manager'};
+      final isAllowedRole = actorRole != null && allowedRoles.contains(actorRole);
+      final isAssignedDriver = actorId != null && actorId == order?.driverId;
+      if (!isAllowedRole && !isAssignedDriver) {
+        emit(state.copyWith(
+          errorMessage: 'Only admin, delivery manager, or the assigned driver can mark this order as ${newStatus.label}.',
+        ));
+        return;
+      }
+    }
 
     // Optimistic update
-    final updated = _updateInColumns(orderId, (o) => o.copyWith(status: newStatus));
+    final updated = _updateInColumns(
+      orderId,
+      (o) => o.copyWith(status: newStatus, statusChangedAt: DateTime.now()),
+    );
     if (updated != null) emit(state.copyWith(columns: updated));
 
     try {
@@ -98,6 +121,27 @@ class DispatchBoardCubit extends Cubit<DispatchBoardState> {
     String? actorName,
     String? actorRole,
   }) async {
+    // Driver assignment limit: max 4 orders per 2-hour window
+    if (driverId != null) {
+      final windowStart = DateTime.now().subtract(const Duration(hours: 2));
+      int assignedCount = 0;
+      for (final list in state.columns.values) {
+        for (final o in list) {
+          if (o.id != orderId &&
+              o.driverId == driverId &&
+              o.createdAt.isAfter(windowStart)) {
+            assignedCount++;
+          }
+        }
+      }
+      if (assignedCount >= 4) {
+        emit(state.copyWith(
+          errorMessage: '$driverName already has $assignedCount orders in the last 2 hours (limit: 4).',
+        ));
+        return;
+      }
+    }
+
     final updated = _updateInColumns(
       orderId,
       (o) => driverId == null
@@ -185,6 +229,43 @@ class DispatchBoardCubit extends Cubit<DispatchBoardState> {
           actorRole: actorRole,
         );
       }
+    } catch (e) {
+      emit(state.copyWith(errorMessage: e.toString()));
+      _fetch(branchId: branchId);
+    }
+  }
+
+  Future<void> uploadTransactionInvoice({
+    required String orderId,
+    required Uint8List bytes,
+    required String extension,
+    String? branchId,
+    String? actorId,
+    String? actorName,
+    String? actorRole,
+  }) async {
+    try {
+      final url = await _ordersRepo.uploadTransactionInvoiceImage(
+        orderId: orderId,
+        bytes: bytes,
+        extension: extension,
+      );
+      await _ordersRepo.updateTransactionInvoice(orderId: orderId, imageUrl: url);
+
+      final updated = _updateInColumns(
+        orderId,
+        (o) => o.copyWith(transactionInvoiceImage: url),
+      );
+      if (updated != null) emit(state.copyWith(columns: updated));
+
+      final who = actorName != null ? '$actorName (${_roleLabel(actorRole)})' : 'System';
+      await _ordersRepo.addOrderHistory(
+        orderId:   orderId,
+        action:    '$who uploaded transaction invoice',
+        actorId:   actorId,
+        actorName: actorName,
+        actorRole: actorRole,
+      );
     } catch (e) {
       emit(state.copyWith(errorMessage: e.toString()));
       _fetch(branchId: branchId);

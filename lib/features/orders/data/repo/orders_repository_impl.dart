@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../model/order_history_model.dart';
 import '../model/order_model.dart';
 import '../remote/orders_data_source.dart';
@@ -46,6 +47,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     String? paymentMethod,
     String? customerPhone,
     String? staffNote,
+    String? orderType,
   }) => _ds.updateOrderFields(
         orderId: orderId,
         notes: notes,
@@ -53,6 +55,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
         paymentMethod: paymentMethod,
         customerPhone: customerPhone,
         staffNote: staffNote,
+        orderType: orderType,
       );
 
   @override
@@ -114,4 +117,17 @@ class OrdersRepositoryImpl implements OrdersRepository {
 
   @override
   Future<void> stopWatchingOrders() => _ds.stopWatchingOrders();
+
+  @override
+  Future<String> uploadTransactionInvoiceImage({
+    required String orderId,
+    required Uint8List bytes,
+    required String extension,
+  }) => _ds.uploadTransactionInvoiceImage(orderId: orderId, bytes: bytes, extension: extension);
+
+  @override
+  Future<void> updateTransactionInvoice({
+    required String orderId,
+    String? imageUrl,
+  }) => _ds.updateTransactionInvoice(orderId: orderId, imageUrl: imageUrl);
 }
